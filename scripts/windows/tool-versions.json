@@ -1,0 +1,8 @@
+{
+  "node": "24.22.2",
+  "nodeSha256": "ca1bff5d8ead13c9f2ea404a176db46bd430704d5b5113734049fa365e7799e2",
+  "pnpm": "10.34.9",
+  "rust": "1.99.1",
+  "rustup": "1.29.2",
+  "rustupSha256": "00f139da614dced87d3c3d4121c43eebdac3c1bf8a5ee86b9d80dfd71c8d70fd"
+}

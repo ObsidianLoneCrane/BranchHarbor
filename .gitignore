@@ -1,0 +1,15 @@
+# Local, disposable development environment and scratch files
+/.dev-env/
+/work/
+
+# Application dependencies and build output
+node_modules/
+dist/
+target/
+src-tauri/gen/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.local
