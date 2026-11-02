@@ -116,6 +116,9 @@ Windows test packaging uses NSIS; MSI-specific system features are not required.
 download times out, retry or populate the project cache with the exact official file after verifying
 the bundler's expected checksum. Do not disable checksum verification or use untrusted mirrors.
 
+Vite excludes the local toolchain, Rust tree, scratch files, and browser test output from its
+development watcher. Keep new cache directories ignored by both Git and any affected file watchers.
+
 ## Verification
 
 Initial checks covered tool execution, pnpm store location, Rust compilation and execution with the

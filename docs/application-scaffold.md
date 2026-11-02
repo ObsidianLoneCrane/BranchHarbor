@@ -91,6 +91,10 @@ and policy tests, 5 Edge browser tests, frontend production build, Rust checks, 
 embedded assets, route navigation, and the real Rust IPC response `windows / x86_64 / 0.1.0`.
 Viewport checks cover 375, 720, and 1240 pixels across all four views.
 
+The actual `tauri dev` path was also exercised: it starts Vite, compiles the native development
+binary, renders the shell, and invokes Rust IPC. Vite excludes `.dev-env`, Rust files, scratch
+files, and browser test output from its watcher to avoid scanning toolchains and locked profiles.
+
 The Windows NSIS test installer was generated using the existing MSVC toolchain and project-local
 NSIS cache. Official NSIS downloads required a retry and cache population with verified files on
 this host. The installer is unsigned; generation and executable startup do not prove clean-machine
