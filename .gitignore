@@ -13,3 +13,7 @@ src-tauri/gen/
 .env.*
 !.env.example
 *.local
+
+# Browser test artifacts
+/playwright-report/
+/test-results/
