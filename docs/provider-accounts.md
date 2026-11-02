@@ -131,9 +131,10 @@ credential removal. Exercise restricted scopes, expiry, and organization approva
 Repeat native persistence/removal checks on macOS and Linux with their actual credential stores.
 Record platform, token class/scopes, repository visibility, and outcome without recording secrets.
 
-Acceptance for live private-account coverage remains open until those checks are recorded. File
-trees, revision selection, branches, PR/issue details, local import, Git mutations, and contribution
-calendars remain later increments. Gitee full-year contribution coverage is still unresolved.
+Acceptance for live private-account coverage remains open until those checks are recorded. The
+subsequent [repository explorer](repository-explorer.md) implements branch, directory, and text
+browsing. PR/issue details, local import, Git mutations, and contribution calendars remain later
+increments. Gitee full-year contribution coverage is still unresolved.
 
 ## Interface previews
 

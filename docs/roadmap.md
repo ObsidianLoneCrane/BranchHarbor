@@ -40,7 +40,9 @@ Deliver this stage through focused increments:
    repository discovery on `feature/provider-accounts`. Automated mocks and Windows native checks
    pass; live private-account authorization and macOS/Linux vault runtime checks remain pending. See
    the [implementation and validation record](provider-accounts.md).
-2. Repository details, revision selection, branches, and file browsing in a subsequent feature.
+2. Implemented: repository details, paginated branches, immutable revision selection, lazy directory
+   browsing, and bounded text previews on `feature/repository-explorer`. See the
+   [explorer guide](repository-explorer.md) for validation limits and maintainer acceptance checks.
 3. Read-only PR and issue lists and details in a subsequent feature.
 4. Contribution-source validation, including the unresolved Gitee calendar coverage requirement.
    Investigate feasibility early rather than waiting for final dashboard implementation.

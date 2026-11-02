@@ -1,13 +1,14 @@
 # Architecture
 
 Status: the application shell, PAT account connections, SQLite account metadata, native credential
-storage, and paginated provider repository discovery are implemented. Git workflows, durable
-repository caches, and contribution data remain planned.
+storage, paginated provider discovery, and read-only repository exploration are implemented. Git
+workflows, durable repository caches, and contribution data remain planned.
 
 ## Implemented foundation
 
 - Tauri 2 and Rust own the desktop window and `get_runtime_info` command.
-- Vue 3, TypeScript, Vite, and Vue Router provide four lazy-loaded routes using hash history.
+- Vue 3, TypeScript, Vite, and Vue Router provide four primary views and a lazy repository detail
+  route using hash history. The repository list is kept alive in-session to restore filters/pages.
 - Shared CSS tokens provide light/dark themes; a Vue composable persists only appearance in local
   storage and follows system changes. No credentials are stored there.
 - `@lucide/vue` provides tree-shaken icons. Tailwind/shadcn-vue and Pinia are deferred until shared
@@ -28,9 +29,11 @@ cooldown, and stale-request guards.
 
 `src-tauri/src/accounts/` contains provider adapters, models, SQLite access, OS credentials, and
 `AccountService`. Its four commands are `list_accounts`, `connect_account`, `disconnect_account`,
-and `list_repositories`. Blocking HTTP, vault, and SQLite work runs on Tauri's blocking worker pool.
-A service mutex serializes account operations, including network requests, to avoid credential
-replacement/removal races; another account's request can wait behind an active request.
+and `list_repositories`. A fifth command, `explore_repository`, handles typed read-only repository
+operations through the same account/credential boundary. Blocking HTTP, vault, and SQLite work runs
+on Tauri's blocking worker pool. A service mutex serializes account operations, including network
+requests, to avoid credential replacement/removal races; another account's request can wait behind
+an active request.
 
 reqwest uses fixed HTTPS provider endpoints, sensitive Authorization headers, explicit timeouts,
 disabled redirects, bounded bodies, and normalized errors. SQL stores schema-versioned non-secret
@@ -41,6 +44,14 @@ across crashes. Missing/locked credentials remain visible and can be repaired by
 debug/release separation, cleanup, and remaining live validation.
 
 ## Remaining technology direction
+
+The [repository explorer](repository-explorer.md) resolves branches to commit/tree SHAs and browses
+nonrecursive trees and bounded blobs through `src-tauri/src/accounts/explorer.rs`. The frontend
+command boundary validates response identity; `src/composables/explorer.ts` owns retry context and
+generation guards. Source code is transient view state. Lazy syntax highlighting runs off the UI
+thread with selected highlight.js grammars and a two-second fallback; workers are terminated after
+use. Source is never executed or rendered as Markdown/HTML, and symbolic links/submodules are not
+followed.
 
 | Layer                 | Choice                           | Responsibility                                       |
 | --------------------- | -------------------------------- | ---------------------------------------------------- |

@@ -17,6 +17,10 @@ credential storage, SQLite account metadata, and paginated repository discovery.
 mutation, contribution retrieval, and automatic updates remain planned. The screenshots below show
 the unconnected browser preview.
 
+The [repository explorer](repository-explorer.md) adds a repository detail route, paginated branch
+selection, immutable directory browsing, and bounded source previews. Its guide records the current
+test counts, screenshots, limits, and live-validation requirements.
+
 ## Source layout
 
 ```text
@@ -30,7 +34,10 @@ src/
   composables/accounts.ts   # Shared account metadata and mutation state
   lib/accounts.ts           # Typed account and repository commands
   lib/runtime.ts           # Typed Tauri command and browser fallback
-  views/                   # Four primary views and not-found page
+  composables/explorer.ts   # Explorer navigation and stale-response guards
+  lib/explorer.ts           # Typed repository exploration commands
+  workers/syntax.worker.ts  # Short-lived syntax highlighting
+  views/                   # Primary views, repository explorer, and not-found page
 src-tauri/
   src/lib.rs               # Tauri startup and get_runtime_info
   src/accounts/            # Provider adapters, credential service, SQLite, commands, tests
