@@ -24,6 +24,8 @@ function Enter-ProjectEnvironment {
         CARGO_TARGET_DIR = (Join-Path $root 'target')
         PNPM_HOME = (Join-Path $root 'pnpm-home')
         COREPACK_HOME = (Join-Path $root 'corepack')
+        PLAYWRIGHT_BROWSERS_PATH = (Join-Path $root 'playwright-browsers')
+        WEBVIEW2_USER_DATA_FOLDER = (Join-Path $root 'webview-profile')
         npm_config_cache = (Join-Path $root 'npm-cache')
         npm_config_prefix = (Join-Path $root 'npm-prefix')
         npm_config_userconfig = (Join-Path $root 'config/npmrc')

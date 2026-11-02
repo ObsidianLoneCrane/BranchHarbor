@@ -1,0 +1,10 @@
+.dev-env/
+work/
+node_modules/
+dist/
+target/
+src-tauri/gen/
+pnpm-lock.yaml
+src-tauri/Cargo.lock
+playwright-report/
+test-results/
