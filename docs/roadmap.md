@@ -34,6 +34,15 @@ installation, signed distribution, and macOS/Linux runtime validation remain rel
 
 ## Stage 2: provider feasibility and read-only discovery - planned
 
+Deliver this stage through focused increments:
+
+1. Account connection, secure credential storage, and a real repository list on
+   `feature/provider-accounts`; see the [scope and acceptance plan](provider-accounts.md).
+2. Repository details, revision selection, branches, and file browsing in a subsequent feature.
+3. Read-only PR and issue lists and details in a subsequent feature.
+4. Contribution-source validation, including the unresolved Gitee calendar coverage requirement.
+   Investigate feasibility early rather than waiting for final dashboard implementation.
+
 - Verify GitHub/Gitee authorization and private repository visibility.
 - Browse files, revisions, branches, PRs, and issues.
 - Validate GitHub contributions and investigate Gitee full-year data.

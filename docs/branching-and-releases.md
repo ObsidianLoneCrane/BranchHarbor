@@ -2,8 +2,9 @@
 
 ## Current state
 
-The repository has `main`, `develop`, and `release`. The disposable Windows environment is merged
-into `develop`. Documentation and scaffold preparation are on `feature/project-scaffold`.
+The repository has `main`, `develop`, and `release`. The disposable environment and application
+foundation are integrated into `develop`. Start subsequent feature branches from the updated
+development branch.
 
 The [CI workflow](../.github/workflows/ci.yml) implements quality checks, PR route validation, and
 four native packaging jobs. Signing, public release automation, and updater channels remain planned.
@@ -42,6 +43,24 @@ performs all merges.
 
 Update the local target after a web merge before starting another feature. A pushed branch is not
 evidence of a merged PR. Retain all three long-lived branches.
+
+### Post-merge synchronization and cleanup
+
+After the maintainer merges a PR on the website:
+
+1. Check for a clean worktree and fetch remote state with `git fetch --prune origin`.
+2. Verify that the feature commits are included in the actual target branch. For a squash merge,
+   also inspect the merged PR and patch/tree equivalence; ancestry alone is insufficient.
+3. Switch to the local target and update it with `git pull --ff-only origin develop` for a normal
+   feature. If fast-forward fails, inspect the divergence before making further changes.
+4. When the maintainer requests cleanup, delete only the verified merged short-lived branches, both
+   locally and remotely if they still exist. Prefer `git branch -d` locally; never force-delete an
+   unverified branch. Keep `main`, `develop`, and `release`.
+5. Create the next scoped `feature/*` branch from the updated `develop`.
+
+Use a normal terminal for Git synchronization, not the environment with redirected application
+configuration. Publishing the next branch can wait until its first reviewable implementation is
+ready. PR creation and merging remain manual website operations.
 
 ## Fix routing
 
