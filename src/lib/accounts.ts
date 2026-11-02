@@ -53,6 +53,8 @@ const messages: Record<string, string> = {
   storage: 'Local account data could not be accessed. Check disk space and file permissions.',
   invalidResponse: 'The provider returned an unexpected response. Please try again later.',
   invalidRepositoryInput: 'The repository, branch, or object reference is invalid.',
+  invalidReaderInput:
+    'The repository, item number, state, or page is invalid. Choose another filter or return to the list.',
   resourceUnavailable:
     'This repository, branch, or file is unavailable or not permitted by the token. Refresh the repository or check account permissions.',
   responseTooLarge: 'The provider response exceeds the supported size. Try a smaller directory.',

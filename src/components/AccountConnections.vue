@@ -222,8 +222,8 @@ async function disconnect(account: Account) {
       <p id="token-guidance" class="field-help">
         {{
           provider === 'github'
-            ? 'Allow access to the repositories you want to view. Fine-grained tokens must include the selected repositories.'
-            : 'Enable user_info and projects permissions for account and repository access.'
+            ? 'Select the repositories you want to view. Allow read access to Contents, Issues, and Pull requests as needed.'
+            : 'Enable user_info and projects for repositories; add pull_requests and issues permissions to read discussions.'
         }}
         Repository coverage depends on the token's permissions.
       </p>

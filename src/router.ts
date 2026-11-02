@@ -23,6 +23,12 @@ export function createAppRouter(history: RouterHistory = createWebHashHistory())
         meta: { title: 'Repository' },
       },
       {
+        path: '/repositories/:accountId/:owner/:name/:resource(pulls|issues)/:number?',
+        name: 'repository-reader',
+        component: () => import('./views/RepositoryReaderView.vue'),
+        meta: { title: 'Repository discussion' },
+      },
+      {
         path: '/activity',
         name: 'activity',
         component: () => import('./views/ActivityView.vue'),

@@ -47,6 +47,12 @@ export async function installExplorerFixture(
               platform: 'Fixture runtime',
               architecture: 'Fixture architecture',
             }
+          if (command === 'read_collaboration') {
+            const fixture = (
+              window as unknown as { __readerFixture: (query: unknown) => Promise<unknown> }
+            ).__readerFixture
+            return fixture(args.query)
+          }
           if (command === 'list_accounts') return accounts
           if (command === 'list_repositories') {
             const query = args.query as { accountId: string; page: number }

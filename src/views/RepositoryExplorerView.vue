@@ -16,6 +16,7 @@ import { createExplorer } from '../composables/explorer'
 import { useAccounts } from '../composables/accounts'
 import { providerName } from '../lib/accounts'
 import type { TreeEntry } from '../lib/explorer'
+import RepositoryTabs from '../components/RepositoryTabs.vue'
 
 const SourcePreview = defineAsyncComponent(() => import('../components/SourcePreview.vue'))
 const route = useRoute()
@@ -99,6 +100,7 @@ function size(value: number | null) {
       <RefreshCw :size="13" aria-hidden="true" />Refresh
     </button>
   </div>
+  <RepositoryTabs />
   <p v-if="state.detail?.description" class="explorer-description">
     {{ state.detail.description }}
   </p>
