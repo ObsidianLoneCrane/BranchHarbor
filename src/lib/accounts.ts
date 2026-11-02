@@ -52,6 +52,10 @@ const messages: Record<string, string> = {
     'This token belongs to another account. Use Add account to connect it separately.',
   storage: 'Local account data could not be accessed. Check disk space and file permissions.',
   invalidResponse: 'The provider returned an unexpected response. Please try again later.',
+  invalidRepositoryInput: 'The repository, branch, or object reference is invalid.',
+  resourceUnavailable:
+    'This repository, branch, or file is unavailable or not permitted by the token. Refresh the repository or check account permissions.',
+  responseTooLarge: 'The provider response exceeds the supported size. Try a smaller directory.',
   provider: 'The provider could not complete the request. Please try again later.',
   browserUnavailable:
     'Account connections are available in the desktop app. Browser preview does not store tokens.',
@@ -92,7 +96,7 @@ export function accountError(error: unknown): AccountError {
 export function hasNativeAccounts() {
   return isTauri()
 }
-async function native<T>(command: string, args?: Record<string, unknown>): Promise<T> {
+export async function native<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   if (!hasNativeAccounts()) throw new AccountError('browserUnavailable')
   try {
     return await invoke<T>(command, args)

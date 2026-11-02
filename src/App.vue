@@ -7,6 +7,8 @@ import { version } from '../package.json'
 import { useAccounts } from './composables/accounts'
 
 const route = useRoute()
+const isSelected = (to: string) =>
+  route.path === to || (to === '/repositories' && route.path.startsWith('/repositories/'))
 onMounted(() => {
   void useAccounts().ensureLoaded()
 })
@@ -45,14 +47,14 @@ watch(
           :key="item.to"
           :to="item.to"
           class="nav-link"
-          :class="{ selected: route.path === item.to }"
-          :aria-current="route.path === item.to ? 'page' : undefined"
+          :class="{ selected: isSelected(item.to) }"
+          :aria-current="isSelected(item.to) ? 'page' : undefined"
           :aria-label="item.label"
         >
           <component :is="item.icon" :size="19" :stroke-width="1.7" aria-hidden="true" /><span>{{
             item.label
           }}</span
-          ><span v-if="route.path === item.to" class="nav-current-dot" aria-hidden="true" />
+          ><span v-if="isSelected(item.to)" class="nav-current-dot" aria-hidden="true" />
         </RouterLink>
       </nav>
       <div class="sidebar-bottom">
@@ -83,7 +85,11 @@ watch(
           </button>
         </div>
       </header>
-      <main id="main-content" class="page-content" tabindex="-1"><RouterView /></main>
+      <main id="main-content" class="page-content" tabindex="-1">
+        <RouterView v-slot="{ Component }"
+          ><KeepAlive include="RepositoriesView"><component :is="Component" /></KeepAlive
+        ></RouterView>
+      </main>
       <footer class="workspace-footer">
         <span>A quieter place to keep your work moving.</span
         ><RouterLink to="/settings"

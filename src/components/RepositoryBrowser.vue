@@ -238,7 +238,15 @@ function updated(value: string | null) {
         <li v-for="repo in items" :key="repo.id" class="repository-row">
           <div class="repository-name-row">
             <FolderGit2 :size="19" aria-hidden="true" />
-            <h2>{{ repo.fullName }}</h2>
+            <h2>
+              <RouterLink
+                :to="{
+                  name: 'repository-explorer',
+                  params: { accountId: selected, owner: repo.owner, name: repo.name },
+                }"
+                >{{ repo.fullName }}</RouterLink
+              >
+            </h2>
             <span class="visibility-badge"
               ><LockKeyhole v-if="repo.visibility === 'private'" :size="10" aria-hidden="true" />{{
                 repo.visibility

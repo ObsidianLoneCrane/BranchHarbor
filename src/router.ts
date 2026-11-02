@@ -17,6 +17,12 @@ export function createAppRouter(history: RouterHistory = createWebHashHistory())
         meta: { title: 'Repositories' },
       },
       {
+        path: '/repositories/:accountId/:owner/:name',
+        name: 'repository-explorer',
+        component: () => import('./views/RepositoryExplorerView.vue'),
+        meta: { title: 'Repository' },
+      },
+      {
         path: '/activity',
         name: 'activity',
         component: () => import('./views/ActivityView.vue'),
