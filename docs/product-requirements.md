@@ -1,9 +1,10 @@
 # Product requirements
 
 Status: agreed product direction. The application shell, PAT account connections, secure credential
-storage, and paginated repository discovery are implemented. Live private-account verification is
-still pending. Other repository workflows remain planned; see the
-[account guide](provider-accounts.md) and [roadmap](roadmap.md) for current delivery status.
+storage, paginated repository discovery, and read-only branch/directory/text browsing are
+implemented. Live private-account verification is still pending. Other repository workflows remain
+planned; see the [account guide](provider-accounts.md) and [roadmap](roadmap.md) for current
+delivery status.
 
 ## Purpose
 

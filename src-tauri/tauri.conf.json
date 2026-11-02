@@ -31,6 +31,7 @@
     "targets": ["nsis", "app", "dmg", "appimage", "deb"],
     "shortDescription": "A calmer workspace for your repositories",
     "category": "DeveloperTool",
+    "resources": { "../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md" },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
