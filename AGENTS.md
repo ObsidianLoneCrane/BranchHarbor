@@ -21,7 +21,9 @@
 - The maintainer creates, reviews, and merges PRs on GitHub's website. Do not use GitHub CLI or APIs
   to create or merge PRs. Provide English titles/descriptions and the intended base and head
   branches instead.
-- Do not merge or delete branches on the maintainer's behalf.
+- Do not create or merge PRs on the maintainer's behalf. Local fast-forward synchronization after a
+  web merge is allowed when requested. Delete branches only when the maintainer requests cleanup and
+  their commits have been verified as integrated into the target branch.
 
 ## Development and validation
 

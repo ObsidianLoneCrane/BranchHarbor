@@ -10,8 +10,11 @@ be displayed separately.
 
 The repository provides a runnable Tauri/Vue application shell with Home, Repositories, Activity,
 and Settings; light/dark/system appearance; local quality checks; and a cross-platform CI workflow.
-Account connections, repository operations, and live contribution data are not implemented yet.
-There are no signed public application releases.
+The desktop app connects GitHub/Gitee accounts with personal access tokens, stores credentials in
+the OS credential store, and loads paginated repository lists with account and visibility filters.
+File browsing, Git operations, and live contribution data remain planned. Live private-account
+verification and macOS/Linux credential-store runtime checks remain outstanding; see the
+[account guide](docs/provider-accounts.md). There are no signed public application releases.
 
 Windows x64 startup, native IPC, and NSIS test packaging have been verified locally. CI is
 configured for Windows x64, macOS ARM64/x64, and Linux x64. CI compilation and real installation
@@ -20,7 +23,7 @@ disposable local bootstrap scripts support Windows x64 only.
 
 ![BranchHarbor Home in light mode](docs/images/home-light.png)
 
-## Planned capabilities
+## Product direction
 
 - Connect personal GitHub and Gitee accounts, including authorized private repositories.
 - Browse files, branches, commit history, pull requests, and issues.
@@ -34,8 +37,9 @@ Gitee contribution data access must be validated before promising parity with it
 
 ## Development
 
-The scaffold uses Tauri 2, Rust, Vue 3, TypeScript, Vite, Vue Router, and Lucide icons. Application
-dependencies are pinned with pnpm and Cargo lockfiles. Git CLI integration and SQLite remain
+The app uses Tauri 2, Rust, Vue 3, TypeScript, Vite, Vue Router, and Lucide icons. Rust adapters use
+reqwest for provider APIs, SQLite for account metadata, and keyring for OS credential storage.
+Application dependencies are pinned with pnpm and Cargo lockfiles. Git CLI integration remains
 planned.
 
 On Windows, reuse existing Git, Visual Studio C++ tools, Windows SDK, and WebView2:
@@ -59,19 +63,26 @@ to be the desktop application.
 Read the [environment guide](docs/development-environment.md) first, including its cleanup and
 isolation notes.
 
+In the desktop app, open **Settings > Connected accounts > Add account**, choose the platform, and
+verify a token. Then open **Repositories** to choose an account and browse its authorized
+repositories. Browser preview disables account connections. Read the
+[account guide](docs/provider-accounts.md) for token permissions, storage, recovery, and
+verification limits.
+
 ## Documentation
 
 Start with the [application scaffold guide](docs/application-scaffold.md) for commands, screenshots,
 implemented behavior, and validation limits.
 
-| Document                                                   | Purpose                                                   |
-| ---------------------------------------------------------- | --------------------------------------------------------- |
-| [Product requirements](docs/product-requirements.md)       | Scope, workflows, UI principles, and acceptance criteria  |
-| [Architecture](docs/architecture.md)                       | Proposed technology, boundaries, and data model           |
-| [Development environment](docs/development-environment.md) | Local tools, verification, and removal                    |
-| [Branching and releases](docs/branching-and-releases.md)   | Branches, manual PR workflow, and planned delivery checks |
-| [Roadmap](docs/roadmap.md)                                 | Completed work and implementation stages                  |
-| [Contributing](CONTRIBUTING.md)                            | Language, commits, documentation, and validation          |
+| Document                                                   | Purpose                                                       |
+| ---------------------------------------------------------- | ------------------------------------------------------------- |
+| [Product requirements](docs/product-requirements.md)       | Scope, workflows, UI principles, and acceptance criteria      |
+| [Architecture](docs/architecture.md)                       | Proposed technology, boundaries, and data model               |
+| [Provider accounts](docs/provider-accounts.md)             | Account setup, repository discovery, security, and validation |
+| [Development environment](docs/development-environment.md) | Local tools, verification, and removal                        |
+| [Branching and releases](docs/branching-and-releases.md)   | Branches, manual PR workflow, and planned delivery checks     |
+| [Roadmap](docs/roadmap.md)                                 | Completed work and implementation stages                      |
+| [Contributing](CONTRIBUTING.md)                            | Language, commits, documentation, and validation              |
 
 ## Contributing
 

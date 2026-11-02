@@ -98,9 +98,9 @@ Cargo/Rustup locations, npm/pnpm locations, XDG locations, APPDATA, LOCALAPPDATA
 are set only for the script process and its children. The calling process environment is restored
 when the script finishes.
 
-Use the isolated terminal for project development. Do not configure Git credentials, sign in to
-hosting services, or start unrelated applications there: redirected APPDATA can affect configuration
-discovery. Application credentials and real user data will have a separate storage policy.
+Use the isolated terminal for project development. Do not configure Git credentials or start
+unrelated applications there: redirected APPDATA can affect configuration discovery. BranchHarbor's
+own account form uses a separate application storage policy described below.
 
 This is a disposable toolchain, not an OS sandbox. Windows, Visual Studio, antivirus tools, crash
 reporting, and dependency scripts may still create system logs or files elsewhere. Zero OS traces
@@ -110,7 +110,22 @@ are not guaranteed.
 ignored separately. Tauri uses `bundle.useLocalToolsDir` so NSIS tools are cached under
 `.dev-env/target/.tauri/`. WebView2 development data and optional Playwright browser downloads also
 use project-local directories. The development profile contains temporary appearance preferences;
-installed application data and future real credentials are separate concerns.
+installed application data and real credentials are separate concerns.
+
+The Windows wrapper sets `BRANCHHARBOR_DEV_DATA_DIR` to the ignored repository directory
+`.dev-data/`. Debug builds store non-secret account metadata in `.dev-data/accounts.sqlite3` and use
+a separate OS credential service ending in `.development.accounts`. Release builds ignore this
+override and use Tauri's normal application-local data directory and the production credential
+service. Without the wrapper, debug builds use a `development` subdirectory of application-local
+data. See [provider accounts](provider-accounts.md#storage-and-recovery) for details.
+
+Launch packaged release builds from a normal desktop session; the development wrapper redirects
+APPDATA and LOCALAPPDATA for all child processes, including any packaged application started there.
+
+`.dev-data/` is application data, not a tool cache. Cleanup of `.dev-env/` preserves it and never
+deletes OS credentials. Disconnect each development account in Settings before deliberately removing
+`.dev-data/`; deleting only the SQLite file leaves credentials in the OS store. Removing tool caches
+does not revoke provider tokens.
 
 Windows test packaging uses NSIS; MSI-specific system features are not required. If a hosting
 download times out, retry or populate the project cache with the exact official file after verifying

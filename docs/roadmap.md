@@ -32,7 +32,18 @@ The minimal application launches on the tested Windows host and reproducible che
 [validation record](application-scaffold.md) and actual Actions results for other targets. Clean
 installation, signed distribution, and macOS/Linux runtime validation remain release work.
 
-## Stage 2: provider feasibility and read-only discovery - planned
+## Stage 2: provider feasibility and read-only discovery - in progress
+
+Deliver this stage through focused increments:
+
+1. Implemented: PAT account connection, OS credential storage, SQLite metadata, and paginated
+   repository discovery on `feature/provider-accounts`. Automated mocks and Windows native checks
+   pass; live private-account authorization and macOS/Linux vault runtime checks remain pending. See
+   the [implementation and validation record](provider-accounts.md).
+2. Repository details, revision selection, branches, and file browsing in a subsequent feature.
+3. Read-only PR and issue lists and details in a subsequent feature.
+4. Contribution-source validation, including the unresolved Gitee calendar coverage requirement.
+   Investigate feasibility early rather than waiting for final dashboard implementation.
 
 - Verify GitHub/Gitee authorization and private repository visibility.
 - Browse files, revisions, branches, PRs, and issues.

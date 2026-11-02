@@ -2,6 +2,9 @@
 /.dev-env/
 /work/
 
+# Development application metadata (preserved when tools are removed)
+/.dev-data/
+
 # Application dependencies and build output
 node_modules/
 dist/

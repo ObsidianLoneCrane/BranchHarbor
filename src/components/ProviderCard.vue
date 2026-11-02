@@ -1,6 +1,20 @@
 <script setup lang="ts">
 import { ArrowUpRight, LockKeyhole } from '@lucide/vue'
-defineProps<{ provider: 'GitHub' | 'Gitee' }>()
+import { computed } from 'vue'
+import { useAccounts } from '../composables/accounts'
+const props = defineProps<{ provider: 'GitHub' | 'Gitee' }>()
+const connections = computed(() =>
+  useAccounts().accounts.value.filter(
+    (account) => account.provider === props.provider.toLowerCase(),
+  ),
+)
+const status = computed(() =>
+  !connections.value.length
+    ? 'Not connected'
+    : connections.value.some((account) => account.credentialStatus === 'saved')
+      ? `${connections.value.length} saved account${connections.value.length > 1 ? 's' : ''}`
+      : 'Reconnect needed',
+)
 </script>
 
 <template>
@@ -12,7 +26,7 @@ defineProps<{ provider: 'GitHub' | 'Gitee' }>()
         }}</span>
         <h3>{{ provider }}</h3>
       </div>
-      <span class="status"><span class="status-dot" />Not connected</span>
+      <span class="status"><span class="status-dot" />{{ status }}</span>
     </div>
     <div class="calendar-placeholder" aria-hidden="true">
       <span v-for="cell in 371" :key="cell" />

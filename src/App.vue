@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { Activity, ArrowUpRight, FolderGit2, House, Moon, Settings2, Sun } from '@lucide/vue'
-import { nextTick, watch } from 'vue'
+import { nextTick, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppearance } from './composables/appearance'
 import { version } from '../package.json'
+import { useAccounts } from './composables/accounts'
 
 const route = useRoute()
+onMounted(() => {
+  void useAccounts().ensureLoaded()
+})
 const brandIcon = '/brand.svg'
 const { isDark, setAppearance } = useAppearance()
 const navigation = [

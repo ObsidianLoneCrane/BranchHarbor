@@ -18,7 +18,26 @@ fn get_runtime_info() -> RuntimeInfo {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_runtime_info])
+        .setup(|app| {
+            let root = app.path().app_local_data_dir()?;
+            #[cfg(debug_assertions)]
+            let root = std::env::var_os("BRANCHHARBOR_DEV_DATA_DIR")
+                .map(std::path::PathBuf::from)
+                .unwrap_or_else(|| root.join("development"));
+            let path = root.join("accounts.sqlite3");
+            app.manage(Arc::new(accounts::AccountService::new(path)));
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            get_runtime_info,
+            accounts::list_accounts,
+            accounts::connect_account,
+            accounts::disconnect_account,
+            accounts::list_repositories
+        ])
         .run(tauri::generate_context!())
         .expect("Failed to start BranchHarbor");
 }
+mod accounts;
+use std::sync::Arc;
+use tauri::Manager;

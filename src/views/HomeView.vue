@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ArrowRight, ArrowUpRight, FolderGit2, GitBranch, Link2 } from '@lucide/vue'
 import ProviderCard from '../components/ProviderCard.vue'
+import { useAccounts } from '../composables/accounts'
+const { accounts } = useAccounts()
 </script>
 
 <template>
@@ -15,14 +17,31 @@ import ProviderCard from '../components/ProviderCard.vue'
   </div>
   <section class="welcome-banner" aria-labelledby="welcome-title">
     <div class="welcome-copy">
-      <span class="subtle-badge"><span class="status-dot accent-dot" />A fresh workspace</span>
-      <h2 id="welcome-title">Every good project starts somewhere.</h2>
-      <p>
+      <span class="subtle-badge"
+        ><span class="status-dot accent-dot" />{{
+          accounts.length ? 'Accounts connected' : 'A fresh workspace'
+        }}</span
+      >
+      <h2 id="welcome-title">
+        {{
+          accounts.length
+            ? 'Your repositories are within reach.'
+            : 'Every good project starts somewhere.'
+        }}
+      </h2>
+      <p v-if="accounts.length">
+        Browse the projects available to your connected accounts.<br class="wide-break" />Each
+        platform keeps its own identity.
+      </p>
+      <p v-else>
         Your accounts and repositories will find a home here.<br class="wide-break" />Explore the
         workspace while the connections take shape.
       </p>
-      <RouterLink to="/settings" class="button button-primary"
-        >Explore account settings<ArrowUpRight :size="16" aria-hidden="true"
+      <RouterLink
+        :to="accounts.length ? '/repositories' : '/settings'"
+        class="button button-primary"
+        >{{ accounts.length ? 'Browse repositories' : 'Explore account settings'
+        }}<ArrowUpRight :size="16" aria-hidden="true"
       /></RouterLink>
     </div>
     <div class="branch-art" aria-hidden="true">
@@ -70,7 +89,7 @@ import ProviderCard from '../components/ProviderCard.vue'
     </div>
   </section>
   <p class="development-note">
-    Workspace preview · Account connections, Git operations, and contribution data are coming in
-    later stages.
+    Account connections and repository discovery are available in the desktop app. Git operations
+    and contribution calendars are coming in later stages.
   </p>
 </template>

@@ -3,6 +3,7 @@ import { Laptop, Monitor, Moon, Sun } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { useAppearance, type Appearance } from '../composables/appearance'
 import { getRuntimeInfo, type RuntimeInfo } from '../lib/runtime'
+import AccountConnections from '../components/AccountConnections.vue'
 
 const { appearance, setAppearance } = useAppearance()
 const options: { value: Appearance; label: string; icon: typeof Sun }[] = [
@@ -36,21 +37,7 @@ onMounted(loadRuntime)
       <h2 id="accounts-title">Connected accounts</h2>
       <p>Your platforms, together in one place.</p>
     </div>
-    <div class="panel">
-      <div v-for="provider in ['GitHub', 'Gitee']" :key="provider" class="account-row">
-        <span class="provider-mark" :class="{ gitee: provider === 'Gitee' }" aria-hidden="true">{{
-          provider === 'GitHub' ? 'GH' : 'G'
-        }}</span>
-        <div class="account-description">
-          <h3>{{ provider }}</h3>
-          <p>Account authorization is not available yet.</p>
-        </div>
-        <span class="coming-soon">Coming soon</span>
-      </div>
-      <div class="panel-footnote">
-        Platform login, Git author identity, and push credentials will be configured separately.
-      </div>
-    </div>
+    <AccountConnections />
   </section>
   <section class="settings-section" aria-labelledby="appearance-title">
     <div class="settings-intro">
@@ -88,7 +75,7 @@ onMounted(loadRuntime)
     <div class="panel about-panel">
       <div class="about-brand">
         <Laptop :size="21" aria-hidden="true" /><strong>BranchHarbor</strong
-        ><span class="subtle-badge">Foundation preview</span>
+        ><span class="subtle-badge">Account preview</span>
       </div>
       <dl v-if="runtime" class="runtime-details">
         <div>

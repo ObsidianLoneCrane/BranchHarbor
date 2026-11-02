@@ -1,7 +1,9 @@
 # Product requirements
 
-Status: agreed product direction. The application shell is implemented; repository and provider
-features remain planned. See the [scaffold guide](application-scaffold.md) for current behavior.
+Status: agreed product direction. The application shell, PAT account connections, secure credential
+storage, and paginated repository discovery are implemented. Live private-account verification is
+still pending. Other repository workflows remain planned; see the
+[account guide](provider-accounts.md) and [roadmap](roadmap.md) for current delivery status.
 
 ## Purpose
 
