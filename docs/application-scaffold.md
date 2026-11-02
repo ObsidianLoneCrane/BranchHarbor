@@ -12,8 +12,10 @@
   Browser preview is labeled as a browser and never invents native runtime information.
 - Responsive sidebar, shared design tokens, reduced-motion support, and local assets/fonts only.
 
-No account authorization, repository mutation, provider requests, contribution retrieval, database,
-or automatic updater is implemented. Appearance is the only persisted application preference.
+The subsequent [provider accounts increment](provider-accounts.md) adds PAT authorization, OS
+credential storage, SQLite account metadata, and paginated repository discovery. Repository
+mutation, contribution retrieval, and automatic updates remain planned. The screenshots below show
+the unconnected browser preview.
 
 ## Source layout
 
@@ -25,10 +27,13 @@ src/
   styles.css / tokens.css  # Shared layout and light/dark tokens
   components/              # Reusable empty state and platform cards
   composables/appearance.ts
+  composables/accounts.ts   # Shared account metadata and mutation state
+  lib/accounts.ts           # Typed account and repository commands
   lib/runtime.ts           # Typed Tauri command and browser fallback
   views/                   # Four primary views and not-found page
 src-tauri/
   src/lib.rs               # Tauri startup and get_runtime_info
+  src/accounts/            # Provider adapters, credential service, SQLite, commands, tests
   capabilities/            # Window capability boundary
   tauri.conf.json          # Window, CSP, bundling, and identity
   Cargo.toml / Cargo.lock
@@ -50,10 +55,11 @@ Open the [project environment](development-environment.md), then run:
 | `pnpm build`                           | Type-check and generate frontend production assets                     |
 | `pnpm tauri build --bundles nsis --ci` | Windows executable and unsigned test installer                         |
 
-`pnpm format` writes the project's formatting. CI only checks formatting. The Rust crate currently
-has no domain unit tests; `cargo test` verifies compilation and runs the available test targets.
-Frontend and policy tests exercise navigation, recovery, themes, native/browser separation, and PR
-routing.
+`pnpm format` writes the project's formatting. CI only checks formatting. Rust tests now exercise
+account storage, credential failure recovery, and mock provider requests. Frontend and policy tests
+exercise navigation, recovery, themes, native/browser separation, account state, and PR routing.
+`pnpm test:credentials` is an explicit opt-in native vault round trip using one temporary synthetic
+credential; it deletes that entry afterward. CI skips that test by default.
 
 The version `0.1.0` is the scaffold's internal version, not a claim of a published release. Project
 checks enforce matching npm/Cargo/Tauri versions and matching bootstrap toolchain pins.
@@ -86,10 +92,10 @@ The following are real browser-preview captures. Placeholder calendars carry no 
 
 ## Validation record
 
-Local Windows verification on 2026-11-02 includes frontend formatting/lint/types, 24 unit/component
-and policy tests, 5 Edge browser tests, frontend production build, Rust checks, native startup,
-embedded assets, route navigation, and the real Rust IPC response `windows / x86_64 / 0.1.0`.
-Viewport checks cover 375, 720, and 1240 pixels across all four views.
+Foundation Windows verification on 2026-11-02 included frontend formatting/lint/types, 24
+unit/component and policy tests, 5 Edge browser tests, frontend production build, Rust checks,
+native startup, embedded assets, route navigation, and the real Rust IPC response
+`windows / x86_64 / 0.1.0`. Viewport checks cover 375, 720, and 1240 pixels across all four views.
 
 The actual `tauri dev` path was also exercised: it starts Vite, compiles the native development
 binary, renders the shell, and invokes Rust IPC. Vite excludes `.dev-env`, Rust files, scratch
@@ -104,3 +110,6 @@ The [CI workflow](../.github/workflows/ci.yml) is configured for Windows x64, ma
 Linux x64. Inspect the
 [actual Actions runs](https://github.com/ObsidianLoneCrane/BranchHarbor/actions) for remote results;
 this local record does not claim macOS/Linux installation or runtime validation.
+
+For the expanded test counts and account-specific validation boundaries, read the
+[provider accounts record](provider-accounts.md#validation-record).

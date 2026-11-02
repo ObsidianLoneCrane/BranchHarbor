@@ -1,7 +1,8 @@
 # Architecture
 
-Status: the application shell, routing, appearance preferences, and read-only runtime-info command
-are implemented. Provider, Git, persistence, and credential modules below remain planned.
+Status: the application shell, PAT account connections, SQLite account metadata, native credential
+storage, and paginated provider repository discovery are implemented. Git workflows, durable
+repository caches, and contribution data remain planned.
 
 ## Implemented foundation
 
@@ -17,6 +18,27 @@ are implemented. Provider, Git, persistence, and credential modules below remain
   core window capabilities; no shell, filesystem, or provider plugins are enabled.
 
 See [application scaffold](application-scaffold.md) for source layout and validation.
+
+## Implemented account boundary
+
+`src/lib/accounts.ts` defines account/repository commands and fixed safe frontend error messages.
+`src/composables/accounts.ts` shares non-secret account metadata across views; tokens are transient
+form/IPC inputs, never shared store state. The repository view owns its filters, pagination, retry
+cooldown, and stale-request guards.
+
+`src-tauri/src/accounts/` contains provider adapters, models, SQLite access, OS credentials, and
+`AccountService`. Its four commands are `list_accounts`, `connect_account`, `disconnect_account`,
+and `list_repositories`. Blocking HTTP, vault, and SQLite work runs on Tauri's blocking worker pool.
+A service mutex serializes account operations, including network requests, to avoid credential
+replacement/removal races; another account's request can wait behind an active request.
+
+reqwest uses fixed HTTPS provider endpoints, sensitive Authorization headers, explicit timeouts,
+disabled redirects, bounded bodies, and normalized errors. SQL stores schema-versioned non-secret
+identity metadata; keyring stores credentials in the native OS vault. SQL transactions and
+credential restoration handle ordinary cross-store failures, but cannot make both stores atomic
+across crashes. Missing/locked credentials remain visible and can be repaired by reconnecting. See
+[account storage and recovery](provider-accounts.md#storage-and-recovery) for the detailed policy,
+debug/release separation, cleanup, and remaining live validation.
 
 ## Remaining technology direction
 
