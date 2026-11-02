@@ -2,6 +2,7 @@ mod credentials;
 pub mod explorer;
 mod models;
 mod provider;
+pub mod reader;
 mod storage;
 #[cfg(test)]
 mod tests;
@@ -23,6 +24,19 @@ pub struct AccountService {
 }
 
 impl AccountService {
+    pub fn read_collaboration(&self, query: reader::ReadQuery) -> Result<reader::ReadResponse> {
+        query.validate()?;
+        let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
+        let connection = storage::open(&self.path)?;
+        let account = storage::get(&connection, &query.account_id)?;
+        query.validate_provider(account.provider)?;
+        let token = self
+            .credentials
+            .read(&account.id)?
+            .filter(|token| !token.is_empty())
+            .ok_or_else(AppError::missing)?;
+        self.hosting.read_collaboration(&account, &token, &query)
+    }
     pub fn explore(&self, query: explorer::ExploreQuery) -> Result<explorer::ExploreResponse> {
         query.validate()?;
         let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
@@ -191,6 +205,17 @@ pub async fn explore_repository(
 ) -> Result<explorer::ExploreResponse> {
     let service = service.inner().clone();
     tauri::async_runtime::spawn_blocking(move || service.explore(query))
+        .await
+        .map_err(|_| AppError::storage())?
+}
+
+#[tauri::command]
+pub async fn read_collaboration(
+    service: tauri::State<'_, Arc<AccountService>>,
+    query: reader::ReadQuery,
+) -> Result<reader::ReadResponse> {
+    let service = service.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || service.read_collaboration(query))
         .await
         .map_err(|_| AppError::storage())?
 }

@@ -43,6 +43,28 @@ impl Credentials for MemoryCredentials {
 }
 struct FixtureHosting;
 impl Hosting for FixtureHosting {
+    fn read_collaboration(
+        &self,
+        account: &Account,
+        token: &str,
+        query: &reader::ReadQuery,
+    ) -> Result<reader::ReadResponse> {
+        if token != "alice-fixture" {
+            return Err(AppError::new("unauthorized", "Fixture token mismatch."));
+        }
+        Ok(reader::ReadResponse {
+            account_id: account.id.clone(),
+            owner: query.owner.clone(),
+            name: query.name.clone(),
+            resource: query.resource,
+            data: reader::ReadData::List {
+                items: vec![],
+                page: 1,
+                has_next: false,
+                filtered: false,
+            },
+        })
+    }
     fn explore(
         &self,
         account: &Account,
@@ -111,6 +133,47 @@ fn fixture() -> (tempfile::TempDir, Arc<MemoryCredentials>, AccountService) {
         operations: Mutex::new(()),
     };
     (dir, credentials, service)
+}
+
+#[test]
+fn collaboration_reader_requires_saved_credentials_and_validates_provider_numbers() {
+    let (_dir, credentials, service) = fixture();
+    let account = service
+        .connect(
+            Provider::Github,
+            Zeroizing::new("alice-fixture".into()),
+            None,
+        )
+        .unwrap();
+    let mut query = reader::ReadQuery {
+        account_id: account.id.clone(),
+        owner: "alice".into(),
+        name: "workspace".into(),
+        resource: reader::Resource::Issues,
+        operation: reader::ReadOperation::List {
+            page: 1,
+            state: reader::State::All,
+        },
+    };
+    assert_eq!(
+        service
+            .read_collaboration(query.clone())
+            .unwrap()
+            .account_id,
+        account.id
+    );
+    credentials.tokens.lock().unwrap().remove(&account.id);
+    assert_eq!(
+        service.read_collaboration(query.clone()).unwrap_err().code,
+        "credentialMissing"
+    );
+    query.operation = reader::ReadOperation::Detail {
+        number: "IKS135".into(),
+    };
+    assert_eq!(
+        service.read_collaboration(query).unwrap_err().code,
+        "invalidReaderInput"
+    );
 }
 
 #[test]
@@ -507,4 +570,20 @@ fn malformed_responses_and_redirects_are_not_treated_as_accounts() {
         );
         server.join().unwrap();
     }
+}
+
+#[test]
+fn repository_routes_use_canonical_namespaces_and_paths_instead_of_gitee_display_names() {
+    let (hosting, server) = mock_server("200 OK", "", r#"[{"id":44,"name":"Friendly display name","full_name":"team/repository-path","owner":{"login":"service-user"},"private":false}]"#.into());
+    let account = FixtureHosting
+        .identity(Provider::Gitee, "alice-fixture")
+        .unwrap();
+    let page = hosting
+        .repositories(&account, "synthetic", &query(&account.id))
+        .unwrap();
+    assert_eq!(page.items[0].owner, "team");
+    assert_eq!(page.items[0].name, "repository-path");
+    assert_eq!(page.items[0].full_name, "team/repository-path");
+    assert!(!page.items[0].owned);
+    server.join().unwrap();
 }

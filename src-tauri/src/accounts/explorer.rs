@@ -165,7 +165,7 @@ fn segment(value: &str) -> bool {
 }
 
 // Encode each untrusted path component independently; never use provider-supplied URLs.
-fn encode(value: &str) -> String {
+pub(super) fn encode(value: &str) -> String {
     let mut encoded = String::new();
     for b in value.bytes() {
         if b.is_ascii_alphanumeric() || b"-._~".contains(&b) {
