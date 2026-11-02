@@ -43,6 +43,29 @@ impl Credentials for MemoryCredentials {
 }
 struct FixtureHosting;
 impl Hosting for FixtureHosting {
+    fn explore(
+        &self,
+        account: &Account,
+        token: &str,
+        query: &explorer::ExploreQuery,
+    ) -> Result<explorer::ExploreResponse> {
+        if token != "alice-fixture" {
+            return Err(AppError::new("unauthorized", "Fixture token mismatch."));
+        }
+        Ok(explorer::ExploreResponse {
+            account_id: account.id.clone(),
+            owner: query.owner.clone(),
+            name: query.name.clone(),
+            data: explorer::ExploreData::Detail {
+                id: format!("{}:fixture", account.id),
+                full_name: format!("{}/{}", query.owner, query.name),
+                description: None,
+                default_branch: None,
+                visibility: "private".into(),
+                archived: false,
+            },
+        })
+    }
     fn identity(&self, provider: Provider, token: &str) -> Result<Account> {
         if token == "invalid-fixture" {
             return Err(AppError::new("unauthorized", "Authorization failed."));
@@ -88,6 +111,43 @@ fn fixture() -> (tempfile::TempDir, Arc<MemoryCredentials>, AccountService) {
         operations: Mutex::new(()),
     };
     (dir, credentials, service)
+}
+
+#[test]
+fn explorer_requires_the_selected_accounts_saved_credential_and_validated_target() {
+    let (_dir, credentials, service) = fixture();
+    let account = service
+        .connect(
+            Provider::Github,
+            Zeroizing::new("alice-fixture".into()),
+            None,
+        )
+        .unwrap();
+    let mut query = explorer::ExploreQuery {
+        account_id: account.id.clone(),
+        owner: "alice".into(),
+        name: "workspace".into(),
+        operation: explorer::ExploreOperation::Detail,
+    };
+    assert_eq!(
+        service.explore(query.clone()).unwrap().account_id,
+        account.id
+    );
+    credentials.tokens.lock().unwrap().remove(&account.id);
+    assert_eq!(
+        service.explore(query.clone()).unwrap_err().code,
+        "credentialMissing"
+    );
+    credentials.fail_read.store(true, Ordering::Relaxed);
+    assert_eq!(
+        service.explore(query.clone()).unwrap_err().code,
+        "credentialUnavailable"
+    );
+    query.owner = "../another".into();
+    assert_eq!(
+        service.explore(query).unwrap_err().code,
+        "invalidRepositoryInput"
+    );
 }
 fn connect(service: &AccountService, provider: Provider, token: &str) -> Account {
     service

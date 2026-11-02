@@ -1,4 +1,5 @@
 mod credentials;
+pub mod explorer;
 mod models;
 mod provider;
 mod storage;
@@ -22,6 +23,18 @@ pub struct AccountService {
 }
 
 impl AccountService {
+    pub fn explore(&self, query: explorer::ExploreQuery) -> Result<explorer::ExploreResponse> {
+        query.validate()?;
+        let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
+        let connection = storage::open(&self.path)?;
+        let account = storage::get(&connection, &query.account_id)?;
+        let token = self
+            .credentials
+            .read(&account.id)?
+            .filter(|token| !token.is_empty())
+            .ok_or_else(AppError::missing)?;
+        self.hosting.explore(&account, &token, &query)
+    }
     pub fn new(path: PathBuf) -> Self {
         Self {
             path,
@@ -167,6 +180,17 @@ pub async fn list_repositories(
 ) -> Result<RepositoryPage> {
     let service = service.inner().clone();
     tauri::async_runtime::spawn_blocking(move || service.repositories(query))
+        .await
+        .map_err(|_| AppError::storage())?
+}
+
+#[tauri::command]
+pub async fn explore_repository(
+    service: tauri::State<'_, Arc<AccountService>>,
+    query: explorer::ExploreQuery,
+) -> Result<explorer::ExploreResponse> {
+    let service = service.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || service.explore(query))
         .await
         .map_err(|_| AppError::storage())?
 }

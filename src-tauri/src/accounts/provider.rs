@@ -20,6 +20,12 @@ pub trait Hosting: Send + Sync {
         token: &str,
         query: &RepositoryQuery,
     ) -> Result<RepositoryPage>;
+    fn explore(
+        &self,
+        account: &Account,
+        token: &str,
+        query: &super::explorer::ExploreQuery,
+    ) -> Result<super::explorer::ExploreResponse>;
 }
 
 pub struct HttpHosting {
@@ -35,12 +41,23 @@ impl HttpHosting {
         }
     }
 
-    fn request<T: serde::de::DeserializeOwned>(
+    pub(super) fn request<T: serde::de::DeserializeOwned>(
         &self,
         provider: Provider,
         token: &str,
         endpoint: &str,
         query: &[(String, String)],
+    ) -> Result<(T, HeaderMap)> {
+        self.request_limited(provider, token, endpoint, query, 8 * 1024 * 1024)
+    }
+
+    pub(super) fn request_limited<T: serde::de::DeserializeOwned>(
+        &self,
+        provider: Provider,
+        token: &str,
+        endpoint: &str,
+        query: &[(String, String)],
+        limit: u64,
     ) -> Result<(T, HeaderMap)> {
         let client = Client::builder()
             .user_agent(concat!("BranchHarbor/", env!("CARGO_PKG_VERSION")))
@@ -77,15 +94,15 @@ impl HttpHosting {
         // Bound provider-controlled bodies and never return request URLs, headers, or response bodies as errors.
         let mut bytes = Vec::new();
         response
-            .take(8 * 1024 * 1024 + 1)
+            .take(limit + 1)
             .read_to_end(&mut bytes)
             .map_err(|_| AppError::new("network", "The provider response could not be read."))?;
         if !status.is_success() {
             return Err(response_error(status, &headers, &bytes));
         }
-        if bytes.len() > 8 * 1024 * 1024 {
+        if bytes.len() as u64 > limit {
             return Err(AppError::new(
-                "invalidResponse",
+                "responseTooLarge",
                 "The provider response is too large.",
             ));
         }
@@ -190,6 +207,14 @@ struct RemoteRepository {
 }
 
 impl Hosting for HttpHosting {
+    fn explore(
+        &self,
+        account: &Account,
+        token: &str,
+        query: &super::explorer::ExploreQuery,
+    ) -> Result<super::explorer::ExploreResponse> {
+        self.explore_repository(account, token, query)
+    }
     fn identity(&self, provider: Provider, token: &str) -> Result<Account> {
         let (user, _): (User, _) = self.request(provider, token, "user", &[])?;
         if user.login.is_empty() {
