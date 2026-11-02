@@ -1,8 +1,8 @@
 # Architecture
 
 Status: the application shell, PAT account connections, SQLite account metadata, native credential
-storage, paginated provider discovery, and read-only repository exploration are implemented. Git
-workflows, durable repository caches, and contribution data remain planned.
+storage, paginated provider discovery, repository exploration, and read-only PR/Issue discussions
+are implemented. Git workflows, durable repository caches, and contribution data remain planned.
 
 ## Implemented foundation
 
@@ -34,6 +34,14 @@ operations through the same account/credential boundary. Blocking HTTP, vault, a
 on Tauri's blocking worker pool. A service mutex serializes account operations, including network
 requests, to avoid credential replacement/removal races; another account's request can wait behind
 an active request.
+
+`read_collaboration` is the sixth command. `accounts/reader.rs` normalizes provider-specific issue
+identifiers, states, and discussion endpoints through the same native transport and credential
+boundary. `src/lib/reader.ts` validates response context; `src/composables/reader.ts` owns transient
+list/detail/comment state, retry scope, and request generations. Hash-route query parameters retain
+list filters and page context without bodies or secrets. Escaped plain-text descriptions/comments
+have explicit byte limits, and failures in comments do not discard readable details. See the
+[reader guide](pr-issue-reader.md).
 
 reqwest uses fixed HTTPS provider endpoints, sensitive Authorization headers, explicit timeouts,
 disabled redirects, bounded bodies, and normalized errors. SQL stores schema-versioned non-secret

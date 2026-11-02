@@ -43,7 +43,9 @@ Deliver this stage through focused increments:
 2. Implemented: repository details, paginated branches, immutable revision selection, lazy directory
    browsing, and bounded text previews on `feature/repository-explorer`. See the
    [explorer guide](repository-explorer.md) for validation limits and maintainer acceptance checks.
-3. Read-only PR and issue lists and details in a subsequent feature.
+3. Implemented: separate read-only PR/Issue lists, state filters, details, and paginated discussion
+   comments on `feature/pr-issue-reader`. See the [reader guide](pr-issue-reader.md) for provider
+   differences and outstanding live validation.
 4. Contribution-source validation, including the unresolved Gitee calendar coverage requirement.
    Investigate feasibility early rather than waiting for final dashboard implementation.
 

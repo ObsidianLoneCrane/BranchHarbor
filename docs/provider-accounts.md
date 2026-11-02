@@ -133,8 +133,9 @@ Record platform, token class/scopes, repository visibility, and outcome without 
 
 Acceptance for live private-account coverage remains open until those checks are recorded. The
 subsequent [repository explorer](repository-explorer.md) implements branch, directory, and text
-browsing. PR/issue details, local import, Git mutations, and contribution calendars remain later
-increments. Gitee full-year contribution coverage is still unresolved.
+browsing. The [PR/Issue reader](pr-issue-reader.md) adds discussion lists, details, and comments.
+Local import, Git mutations, and contribution calendars remain later increments. Gitee full-year
+contribution coverage is still unresolved.
 
 ## Interface previews
 

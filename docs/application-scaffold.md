@@ -21,6 +21,10 @@ The [repository explorer](repository-explorer.md) adds a repository detail route
 selection, immutable directory browsing, and bounded source previews. Its guide records the current
 test counts, screenshots, limits, and live-validation requirements.
 
+The [PR/Issue reader](pr-issue-reader.md) adds a lazy discussion route, repository task navigation,
+state-filtered lists, details, and paginated general comments. Its validation record supersedes the
+foundation-only test counts below.
+
 ## Source layout
 
 ```text
