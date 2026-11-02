@@ -22,6 +22,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "check:project": "node scripts/check-project.mjs",
+    "test:credentials": "cargo test --manifest-path src-tauri/Cargo.toml --locked native_credential_round_trip -- --ignored",
     "check:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check && cargo clippy --manifest-path src-tauri/Cargo.toml --locked --all-targets -- -D warnings && cargo test --manifest-path src-tauri/Cargo.toml --locked",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm check:project"
   },

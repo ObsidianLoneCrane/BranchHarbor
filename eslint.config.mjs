@@ -8,6 +8,7 @@ export default ts.config(
   {
     ignores: [
       '.dev-env/**',
+      '.dev-data/**',
       'work/**',
       'dist/**',
       'node_modules/**',
