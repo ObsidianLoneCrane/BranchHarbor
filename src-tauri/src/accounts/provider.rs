@@ -245,8 +245,8 @@ impl Hosting for HttpHosting {
             .into_iter()
             .map(|repo| {
                 let visibility = match (repo.private, repo.visibility.as_deref()) {
-                    (Some(true), _) | (_, Some("private")) => "private",
                     (_, Some("internal")) => "internal",
+                    (Some(true), _) | (_, Some("private")) => "private",
                     (Some(false), _) | (_, Some("public")) => "public",
                     _ => "unknown",
                 };

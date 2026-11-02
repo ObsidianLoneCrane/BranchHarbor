@@ -99,7 +99,7 @@ Windows checks on 2026-11-02:
 
 - `pnpm check`: formatting, lint, types, project consistency, and 31 frontend/component/policy
   tests.
-- `pnpm check:rust`: formatting, Clippy, and 13 account/provider tests. The native credential test
+- `pnpm check:rust`: formatting, Clippy, and 14 account/provider tests. The native credential test
   is ignored by default so CI does not require an unlocked user keychain.
 - `pnpm test:credentials`: one real Windows Credential Manager synthetic entry was written, read,
   deleted, and confirmed absent. No production token was used.

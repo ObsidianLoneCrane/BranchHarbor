@@ -372,6 +372,25 @@ fn repository_pagination_maps_visibility_ownership_and_provider_specific_filters
 }
 
 #[test]
+fn internal_repository_visibility_is_preserved_when_private_flag_is_true() {
+    let (hosting, server) = mock_server(
+        "200 OK",
+        "",
+        r#"[{"id":45,"name":"internal-project","full_name":"team/internal-project","owner":{"login":"team"},"private":true,"visibility":"internal"}]"#.into(),
+    );
+    let account = FixtureHosting
+        .identity(Provider::Github, "alice-fixture")
+        .unwrap();
+    let page = hosting
+        .repositories(&account, "synthetic", &query(&account.id))
+        .unwrap();
+    assert_eq!(page.items[0].visibility, "internal");
+    assert!(!page.items[0].owned);
+    assert!(!page.has_next);
+    server.join().unwrap();
+}
+
+#[test]
 fn provider_errors_are_classified_without_echoing_provider_secrets() {
     for (status, headers, expected) in [
         ("401 Unauthorized", "", "unauthorized"),

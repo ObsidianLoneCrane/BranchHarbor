@@ -119,6 +119,9 @@ override and use Tauri's normal application-local data directory and the product
 service. Without the wrapper, debug builds use a `development` subdirectory of application-local
 data. See [provider accounts](provider-accounts.md#storage-and-recovery) for details.
 
+Launch packaged release builds from a normal desktop session; the development wrapper redirects
+APPDATA and LOCALAPPDATA for all child processes, including any packaged application started there.
+
 `.dev-data/` is application data, not a tool cache. Cleanup of `.dev-env/` preserves it and never
 deletes OS credentials. Disconnect each development account in Settings before deliberately removing
 `.dev-data/`; deleting only the SQLite file leaves credentials in the OS store. Removing tool caches
