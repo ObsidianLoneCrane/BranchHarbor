@@ -8,9 +8,9 @@ Describe the problem and resulting behavior. Link the related issue if applicabl
 
 ## Validation
 
-List checks actually run, their results, and tested operating systems. Identify
-relevant checks or platforms not tested and explain why. For documentation-only
-changes, report link, language, and whitespace checks.
+List checks actually run, their results, and tested operating systems. Identify relevant checks or
+platforms not tested and explain why. For documentation-only changes, report link, language, and
+whitespace checks.
 
 ## Documentation
 

@@ -1,7 +1,7 @@
 # Roadmap
 
-Stages describe delivery order, not committed dates. Update acceptance and status
-in the same PR as implementation and keep the [README](../README.md) consistent.
+Stages describe delivery order, not committed dates. Update acceptance and status in the same PR as
+implementation and keep the [README](../README.md) consistent.
 
 ## Stage 0: disposable development environment - completed
 
@@ -12,7 +12,7 @@ in the same PR as implementation and keep the [README](../README.md) consistent.
 
 Completion applies to the development environment, not a runnable application.
 
-## Stage 1: documentation and application foundation - in progress
+## Stage 1: documentation and application foundation - implemented
 
 Documentation preparation:
 
@@ -20,16 +20,17 @@ Documentation preparation:
 - Define scope, architecture, branch routing, and release expectations.
 - Require documentation updates alongside implementation.
 
-Application work still planned:
+Application foundation:
 
-- Create Tauri 2 + Vue 3 + TypeScript + Vite scaffold and lock dependencies.
-- Add a minimal English shell, navigation, and honest empty states.
-- Define formatting, lint, types, and a minimal relevant test setup.
-- Add Windows/macOS/Linux build checks and verified local commands.
+- Tauri 2 + Vue 3 + TypeScript + Vite scaffold with dependency lockfiles.
+- Four English views, hash routing, honest empty states, and persisted appearance.
+- Formatting, lint, types, unit/component tests, and browser behavior checks.
+- Windows/macOS/Linux CI build matrix and documented local commands.
+- Windows native startup, runtime-info IPC, and unsigned NSIS packaging verified locally.
 
-Acceptance: the minimal application launches on tested targets, reproducible
-checks exist, and docs identify verified and unverified platforms. Documentation
-preparation alone does not satisfy application acceptance.
+The minimal application launches on the tested Windows host and reproducible checks exist. Read the
+[validation record](application-scaffold.md) and actual Actions results for other targets. Clean
+installation, signed distribution, and macOS/Linux runtime validation remain release work.
 
 ## Stage 2: provider feasibility and read-only discovery - planned
 
@@ -39,8 +40,8 @@ preparation alone does not satisfy application acceptance.
 - Define coverage and labeling if official Gitee parity is unavailable.
 - Validate OS credentials and Git transport on target platforms.
 
-Acceptance: document capability differences and calendar limitations from real
-integration results before promising complete cross-provider support.
+Acceptance: document capability differences and calendar limitations from real integration results
+before promising complete cross-provider support.
 
 ## Stage 3: everyday local repository workflows - planned
 
@@ -49,8 +50,8 @@ integration results before promising complete cross-provider support.
 - Add basic branch operations, progress, and recovery.
 - Test Git mutations using disposable repositories.
 
-Acceptance: complete a change-to-push workflow with identifiable author, account,
-remote, and branch targets.
+Acceptance: complete a change-to-push workflow with identifiable author, account, remote, and branch
+targets.
 
 ## Stage 4: personal overview and first usable version - planned
 
@@ -66,5 +67,5 @@ remote, and branch targets.
 - Implement release builds, signing, update channels, and migration checks.
 - Verify clean installation and upgrades for each declared distribution target.
 
-Release infrastructure may arrive earlier through focused PRs. Public readiness
-still depends on target validation and a complete, verified asset set.
+Release infrastructure may arrive earlier through focused PRs. Public readiness still depends on
+target validation and a complete, verified asset set.

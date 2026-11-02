@@ -2,30 +2,30 @@
 
 ## Current support
 
-The bootstrap supports Windows x64 with Windows PowerShell 5.1 or PowerShell 7.
-Native macOS and Linux setup instructions will follow validated application builds.
-The Windows bootstrap does not establish cross-platform application support.
+The bootstrap supports Windows x64 with Windows PowerShell 5.1 or PowerShell 7. Native macOS and
+Linux setup instructions will follow validated application builds. The Windows bootstrap does not
+establish cross-platform application support.
 
-Reuse existing Git, Visual Studio 2022 with the MSVC x64/x86 C++ desktop toolchain,
-Windows SDK, and Microsoft Edge WebView2 Runtime. Scripts do not install or remove
-these components, edit persistent PATH or PowerShell profiles, or install global
-npm packages. Docker and WSL are not required.
+Reuse existing Git, Visual Studio 2022 with the MSVC x64/x86 C++ desktop toolchain, Windows SDK, and
+Microsoft Edge WebView2 Runtime. Scripts do not install or remove these components, edit persistent
+PATH or PowerShell profiles, or install global npm packages. Docker and WSL are not required.
 
 ## Pinned tools
 
-[tool-versions.json](../scripts/windows/tool-versions.json) is the source of truth
-for bootstrap versions and installer checksums.
+[tool-versions.json](../scripts/windows/tool-versions.json) is the source of truth for bootstrap
+versions and installer checksums.
 
-| Tool | Version |
-| --- | --- |
+| Tool    | Version |
+| ------- | ------- |
 | Node.js | 24.22.2 |
-| pnpm | 10.34.9 |
-| Rust | 1.99.1 |
-| rustup | 1.29.2 |
+| pnpm    | 10.34.9 |
+| Rust    | 1.99.1  |
+| rustup  | 1.29.2  |
 
-Rustfmt and Clippy accompany the pinned Rust toolchain. Use the independent Node
-distribution rather than an editor's internal runtime. Application dependencies
-and lockfiles will be introduced with the scaffold.
+Rustfmt and Clippy accompany the pinned Rust toolchain. Use the independent Node distribution rather
+than an editor's internal runtime. Application dependencies are pinned in `package.json`,
+`pnpm-lock.yaml`, and `src-tauri/Cargo.lock`. `.node-version`, `rust-toolchain.toml`, and project
+checks keep the toolchain requirements aligned with bootstrap configuration.
 
 ## Setup and use
 
@@ -36,22 +36,33 @@ Run from the repository root:
 ./scripts/windows/dev.ps1
 ```
 
-Setup verifies the pinned SHA-256 hashes of the official Node ZIP and rustup
-executable. Rustup verifies downloaded components; npm verifies package integrity.
-Review version and checksum changes together when upgrading tools.
+Setup verifies the pinned SHA-256 hashes of the official Node ZIP and rustup executable. Rustup
+verifies downloaded components; npm verifies package integrity. Review version and checksum changes
+together when upgrading tools.
 
-The bootstrap copies the rustup binary into tool entry points instead of creating
-proxy links, supporting restricted filesystems at the cost of additional disk
-space. Rustup self-update is disabled; upgrades are explicit configuration changes.
+The bootstrap copies the rustup binary into tool entry points instead of creating proxy links,
+supporting restricted filesystems at the cost of additional disk space. Rustup self-update is
+disabled; upgrades are explicit configuration changes.
 
-The development script opens a child terminal with project settings. Type
-`exit` to return to the parent terminal. A single command can also be run:
+The development script opens a child terminal with project settings. Type `exit` to return to the
+parent terminal. A single command can also be run:
 
 ```powershell
 ./scripts/windows/dev.ps1 node --version
 ./scripts/windows/dev.ps1 pnpm --version
 ./scripts/windows/dev.ps1 cargo --version
 ```
+
+Inside the project terminal, install and launch the application:
+
+```powershell
+pnpm install --frozen-lockfile
+pnpm tauri dev
+```
+
+See the [application guide](application-scaffold.md) for browser preview, tests, and packaging.
+Prefer `pnpm check:rust` over forwarding a raw Rust command containing `--` through the PowerShell
+wrapper: PowerShell can consume that delimiter when binding script arguments.
 
 If local script execution is blocked, use a process-only invocation:
 
@@ -60,8 +71,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/windows/setup.
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/windows/dev.ps1
 ```
 
-Do not change permanent execution policies for this project. Organization-managed
-policies may still prevent execution.
+Do not change permanent execution policies for this project. Organization-managed policies may still
+prevent execution.
 
 ## Storage and isolation
 
@@ -78,35 +89,42 @@ policies may still prevent execution.
   cache/ data/           # XDG cache and data locations
   local-app-data/        # Child-process LOCALAPPDATA
   app-data/              # Child-process APPDATA
+  playwright-browsers/   # Optional downloaded browser test binaries
+  webview-profile/       # Disposable Windows development WebView2 profile
   tmp/ downloads/        # Temporary files and downloaded installers
 ```
 
-Cargo/Rustup locations, npm/pnpm locations, XDG locations, APPDATA, LOCALAPPDATA,
-TEMP/TMP, and PATH are set only for the script process and its children. The
-calling process environment is restored when the script finishes.
+Cargo/Rustup locations, npm/pnpm locations, XDG locations, APPDATA, LOCALAPPDATA, TEMP/TMP, and PATH
+are set only for the script process and its children. The calling process environment is restored
+when the script finishes.
 
-Use the isolated terminal for project development. Do not configure Git
-credentials, sign in to hosting services, or start unrelated applications there:
-redirected APPDATA can affect configuration discovery. Application credentials
-and real user data will have a separate storage policy.
+Use the isolated terminal for project development. Do not configure Git credentials, sign in to
+hosting services, or start unrelated applications there: redirected APPDATA can affect configuration
+discovery. Application credentials and real user data will have a separate storage policy.
 
-This is a disposable toolchain, not an OS sandbox. Windows, Visual Studio,
-antivirus tools, crash reporting, and dependency scripts may still create system
-logs or files elsewhere. Zero OS traces are not guaranteed.
+This is a disposable toolchain, not an OS sandbox. Windows, Visual Studio, antivirus tools, crash
+reporting, and dependency scripts may still create system logs or files elsewhere. Zero OS traces
+are not guaranteed.
 
-Future `node_modules/` and `dist/` directories remain in the repository and are
-ignored separately. Windows packaging is planned to start with NSIS; MSI-specific
-system features are not required by the current environment.
+`node_modules/`, `dist/`, `test-results/`, and `playwright-report/` remain in the repository and are
+ignored separately. Tauri uses `bundle.useLocalToolsDir` so NSIS tools are cached under
+`.dev-env/target/.tauri/`. WebView2 development data and optional Playwright browser downloads also
+use project-local directories. The development profile contains temporary appearance preferences;
+installed application data and future real credentials are separate concerns.
+
+Windows test packaging uses NSIS; MSI-specific system features are not required. If a hosting
+download times out, retry or populate the project cache with the exact official file after verifying
+the bundler's expected checksum. Do not disable checksum verification or use untrusted mirrors.
 
 ## Verification
 
-Initial checks covered tool execution, pnpm store location, Rust compilation and
-execution with the existing MSVC installation, environment restoration, unchanged
-persistent PATH values, and cleanup behavior.
+Initial checks covered tool execution, pnpm store location, Rust compilation and execution with the
+existing MSVC installation, environment restoration, unchanged persistent PATH values, and cleanup
+behavior.
 
-The application package, test suite, and CI do not exist yet. Do not advertise
-`pnpm tauri dev` or `pnpm test` as available until implementation adds and
-verifies them. Update this guide with real commands in that change.
+The scaffold now has frontend checks, unit/component tests, browser tests, Rust checks, and a CI
+matrix. Windows native startup, embedded assets, navigation, and the Rust runtime-info command have
+been verified. Read the [validation record](application-scaffold.md) for platform limits.
 
 ## Cleanup
 
@@ -117,14 +135,13 @@ Close development terminals, servers, and build processes. From a normal termina
 ./scripts/windows/clean.ps1
 ```
 
-The second command prompts for confirmation. Cleanup only removes the current
-repository's `.dev-env` after checking its ownership marker and rejecting a
-linked environment root. It rejects cleanup while an executable inside that
-directory is running.
+The second command prompts for confirmation. Cleanup only removes the current repository's
+`.dev-env` after checking its ownership marker and rejecting a linked environment root. It rejects
+cleanup while an executable inside that directory is running.
 
-Source files, Git history, and existing system tools remain. Future
-`node_modules/` and `dist/` can be removed separately. Real application data,
-credentials, and signing keys must not be treated as build caches.
+Source files, Git history, and existing system tools remain. `node_modules/` and `dist/` can be
+removed separately. Real application data, credentials, and signing keys must not be treated as
+build caches.
 
 ## References
 
