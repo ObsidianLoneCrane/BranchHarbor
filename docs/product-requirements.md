@@ -57,7 +57,8 @@ graph are separate features; a full interactive graph can follow basic history b
 
 Daily activity and platform contributions are separate datasets. A local commit can appear before
 push; a push is not a contribution count. Provider rules and permissions determine contribution
-visibility.
+visibility. The [source preview](contribution-sources.md) provides GitHub counts and a limited Gitee
+public event sample while full dashboard delivery remains planned.
 
 - Store and display GitHub/Gitee calendars independently.
 - Prefer GitHub's official GraphQL contribution calendar where authorized.

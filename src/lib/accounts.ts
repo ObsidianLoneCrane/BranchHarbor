@@ -52,6 +52,8 @@ const messages: Record<string, string> = {
     'This token belongs to another account. Use Add account to connect it separately.',
   storage: 'Local account data could not be accessed. Check disk space and file permissions.',
   invalidResponse: 'The provider returned an unexpected response. Please try again later.',
+  invalidContributionDay: 'Choose a valid UTC day on or before today.',
+  contributionUnavailable: 'This contribution source does not support the requested range.',
   invalidRepositoryInput: 'The repository, branch, or object reference is invalid.',
   invalidReaderInput:
     'The repository, item number, state, or page is invalid. Choose another filter or return to the list.',

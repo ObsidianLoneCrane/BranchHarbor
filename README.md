@@ -14,9 +14,10 @@ The desktop app connects GitHub/Gitee accounts with personal access tokens, stor
 the OS credential store, and loads paginated repository lists with account and visibility filters.
 The read-only repository explorer adds details, branch selection, directories, and bounded text
 previews with syntax highlighting. Pull requests and Issues have separate read-only lists, state
-filters, details, and paginated discussion comments. Git operations and live contribution data
-remain planned. Live private-account verification and macOS/Linux credential-store runtime checks
-remain outstanding; see the [account guide](docs/provider-accounts.md). There are no signed public
+filters, details, and paginated discussion comments. The Activity preview reads GitHub contribution
+counts and a Gitee public event sample. Local Git operations and the Home contribution charts remain
+planned. Live private-account verification and macOS/Linux credential-store runtime checks remain
+outstanding; see the [account guide](docs/provider-accounts.md). There are no signed public
 application releases.
 
 Windows x64 startup, native IPC, and NSIS test packaging have been verified locally. CI is
@@ -77,17 +78,18 @@ verification limits.
 Start with the [application scaffold guide](docs/application-scaffold.md) for commands, screenshots,
 implemented behavior, and validation limits.
 
-| Document                                                   | Purpose                                                               |
-| ---------------------------------------------------------- | --------------------------------------------------------------------- |
-| [Product requirements](docs/product-requirements.md)       | Scope, workflows, UI principles, and acceptance criteria              |
-| [Architecture](docs/architecture.md)                       | Proposed technology, boundaries, and data model                       |
-| [Provider accounts](docs/provider-accounts.md)             | Account setup, repository discovery, security, and validation         |
-| [Repository explorer](docs/repository-explorer.md)         | Branch selection, pinned directory browsing, and text previews        |
-| [PR and Issue reader](docs/pr-issue-reader.md)             | Discussion lists, details, comments, provider differences, and limits |
-| [Development environment](docs/development-environment.md) | Local tools, verification, and removal                                |
-| [Branching and releases](docs/branching-and-releases.md)   | Branches, manual PR workflow, and planned delivery checks             |
-| [Roadmap](docs/roadmap.md)                                 | Completed work and implementation stages                              |
-| [Contributing](CONTRIBUTING.md)                            | Language, commits, documentation, and validation                      |
+| Document                                                   | Purpose                                                                  |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [Product requirements](docs/product-requirements.md)       | Scope, workflows, UI principles, and acceptance criteria                 |
+| [Architecture](docs/architecture.md)                       | Proposed technology, boundaries, and data model                          |
+| [Provider accounts](docs/provider-accounts.md)             | Account setup, repository discovery, security, and validation            |
+| [Repository explorer](docs/repository-explorer.md)         | Branch selection, pinned directory browsing, and text previews           |
+| [PR and Issue reader](docs/pr-issue-reader.md)             | Discussion lists, details, comments, provider differences, and limits    |
+| [Contribution sources](docs/contribution-sources.md)       | GitHub contribution counts, Gitee public events, and verification limits |
+| [Development environment](docs/development-environment.md) | Local tools, verification, and removal                                   |
+| [Branching and releases](docs/branching-and-releases.md)   | Branches, manual PR workflow, and planned delivery checks                |
+| [Roadmap](docs/roadmap.md)                                 | Completed work and implementation stages                                 |
+| [Contributing](CONTRIBUTING.md)                            | Language, commits, documentation, and validation                         |
 
 ## Contributing
 
