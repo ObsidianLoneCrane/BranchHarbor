@@ -13,6 +13,12 @@ use std::{
 pub const PAGE_SIZE: usize = 30;
 
 pub trait Hosting: Send + Sync {
+    fn read_collaboration(
+        &self,
+        account: &Account,
+        token: &str,
+        query: &super::reader::ReadQuery,
+    ) -> Result<super::reader::ReadResponse>;
     fn identity(&self, provider: Provider, token: &str) -> Result<Account>;
     fn repositories(
         &self,
@@ -207,6 +213,14 @@ struct RemoteRepository {
 }
 
 impl Hosting for HttpHosting {
+    fn read_collaboration(
+        &self,
+        account: &Account,
+        token: &str,
+        query: &super::reader::ReadQuery,
+    ) -> Result<super::reader::ReadResponse> {
+        self.read_repository_collaboration(account, token, query)
+    }
     fn explore(
         &self,
         account: &Account,
@@ -275,14 +289,23 @@ impl Hosting for HttpHosting {
                     (Some(false), _) | (_, Some("public")) => "public",
                     _ => "unknown",
                 };
+                // Gitee display names and owner logins can differ from canonical API paths.
+                let (owner, name) = repo
+                    .full_name
+                    .split_once('/')
+                    .filter(|(owner, name)| {
+                        !owner.is_empty() && !name.is_empty() && !name.contains('/')
+                    })
+                    .map(|(owner, name)| (owner.to_owned(), name.to_owned()))
+                    .unwrap_or_else(|| (repo.owner.login.clone(), repo.name.clone()));
                 Repository {
                     id: format!("{}:{}:{}", account.provider.slug(), account.host, repo.id),
-                    name: repo.name,
+                    name,
                     full_name: repo.full_name,
                     description: repo.description,
                     visibility: visibility.into(),
                     owned: repo.owner.login.eq_ignore_ascii_case(&account.login),
-                    owner: repo.owner.login,
+                    owner,
                     language: repo.language,
                     default_branch: repo.default_branch,
                     updated_at: repo.updated_at,

@@ -127,8 +127,9 @@ displayed commit stays fixed while browsing and changes only after branch select
 tokens and private source out of screenshots and logs. Repeat native preview/worker behavior on
 macOS and Linux before claiming runtime parity.
 
-PR/issue reading is the next focused increment. Local import, Git mutations, full history, tags, and
-contribution calendars remain separate roadmap work.
+The [PR/Issue reader](pr-issue-reader.md) adds separate repository navigation for read-only lists,
+details, and discussion comments. Local import, Git mutations, full history, tags, and contribution
+calendars remain separate roadmap work.
 
 ## Interface previews
 

@@ -34,7 +34,8 @@ pub fn run() {
             accounts::connect_account,
             accounts::disconnect_account,
             accounts::list_repositories,
-            accounts::explore_repository
+            accounts::explore_repository,
+            accounts::read_collaboration
         ])
         .run(tauri::generate_context!())
         .expect("Failed to start BranchHarbor");

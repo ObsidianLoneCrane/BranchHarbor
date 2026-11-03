@@ -133,6 +133,9 @@ the bundler's expected checksum. Do not disable checksum verification or use unt
 
 Vite excludes the local toolchain, Rust tree, scratch files, and browser test output from its
 development watcher. Keep new cache directories ignored by both Git and any affected file watchers.
+The selected syntax-highlighting worker dependencies are prebundled at development startup to avoid
+a dependency-optimization reload when the first source preview opens. This does not eagerly load the
+highlighting worker in the application.
 
 ## Verification
 
