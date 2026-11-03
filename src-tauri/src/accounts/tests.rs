@@ -43,6 +43,15 @@ impl Credentials for MemoryCredentials {
 }
 struct FixtureHosting;
 impl Hosting for FixtureHosting {
+    fn contribution_source(
+        &self,
+        _account: &Account,
+        _token: Option<&str>,
+        _day: Option<time::Date>,
+    ) -> Result<contributions::SourceData> {
+        unreachable!("Account fixtures do not serve contribution data")
+    }
+
     fn read_collaboration(
         &self,
         account: &Account,
@@ -407,7 +416,7 @@ fn validates_page_numbers_before_requesting_provider_data() {
     );
 }
 
-fn mock_server(
+pub(super) fn mock_server(
     status: &str,
     headers: &str,
     body: String,
@@ -425,8 +434,19 @@ fn mock_server(
         loop {
             let size = stream.read(&mut buffer).unwrap();
             request.extend_from_slice(&buffer[..size]);
-            if size == 0 || request.windows(4).any(|v| v == b"\r\n\r\n") {
+            if size == 0 {
                 break;
+            }
+            if let Some(end) = request.windows(4).position(|v| v == b"\r\n\r\n") {
+                let headers = String::from_utf8_lossy(&request[..end]).to_ascii_lowercase();
+                let length = headers
+                    .lines()
+                    .find_map(|line| line.strip_prefix("content-length:"))
+                    .and_then(|value| value.trim().parse::<usize>().ok())
+                    .unwrap_or(0);
+                if request.len() >= end + 4 + length {
+                    break;
+                }
             }
         }
         stream.write_all(response.as_bytes()).unwrap();

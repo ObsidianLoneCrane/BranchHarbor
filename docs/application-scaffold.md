@@ -13,9 +13,8 @@
 - Responsive sidebar, shared design tokens, reduced-motion support, and local assets/fonts only.
 
 The subsequent [provider accounts increment](provider-accounts.md) adds PAT authorization, OS
-credential storage, SQLite account metadata, and paginated repository discovery. Repository
-mutation, contribution retrieval, and automatic updates remain planned. The screenshots below show
-the unconnected browser preview.
+credential storage, SQLite account metadata, and paginated repository discovery. Repository mutation
+and automatic updates remain planned. The screenshots below show the unconnected browser preview.
 
 The [repository explorer](repository-explorer.md) adds a repository detail route, paginated branch
 selection, immutable directory browsing, and bounded source previews. Its guide records the current
@@ -23,7 +22,8 @@ test counts, screenshots, limits, and live-validation requirements.
 
 The [PR/Issue reader](pr-issue-reader.md) adds a lazy discussion route, repository task navigation,
 state-filtered lists, details, and paginated general comments. Its validation record supersedes the
-foundation-only test counts below.
+foundation-only test counts below. The [contribution source preview](contribution-sources.md) adds
+source-specific reads to Activity for connected accounts.
 
 ## Source layout
 

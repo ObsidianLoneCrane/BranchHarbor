@@ -345,6 +345,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tempfile",
+ "time",
  "zeroize",
 ]
 

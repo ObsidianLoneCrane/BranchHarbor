@@ -2,7 +2,9 @@
 
 Status: the application shell, PAT account connections, SQLite account metadata, native credential
 storage, paginated provider discovery, repository exploration, and read-only PR/Issue discussions
-are implemented. Git workflows, durable repository caches, and contribution data remain planned.
+are implemented. The [contribution source preview](contribution-sources.md) reads GitHub GraphQL
+counts and Gitee public events through the Rust account service. Git workflows, durable repository
+caches, and the Home contribution charts remain planned.
 
 ## Implemented foundation
 

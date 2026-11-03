@@ -46,8 +46,9 @@ Deliver this stage through focused increments:
 3. Implemented: separate read-only PR/Issue lists, state filters, details, and paginated discussion
    comments on `feature/pr-issue-reader`. See the [reader guide](pr-issue-reader.md) for provider
    differences and outstanding live validation.
-4. Contribution-source validation, including the unresolved Gitee calendar coverage requirement.
-   Investigate feasibility early rather than waiting for final dashboard implementation.
+4. Implemented: a read-only Activity preview for GitHub calendar and UTC-day contribution counts,
+   and a bounded Gitee public event sample. GitHub PAT checks remain pending and no supported Gitee
+   full-year calendar API has been identified. See the [source guide](contribution-sources.md).
 
 - Verify GitHub/Gitee authorization and private repository visibility.
 - Browse files, revisions, branches, PRs, and issues.
