@@ -1,3 +1,4 @@
+pub mod contributions;
 mod credentials;
 pub mod explorer;
 mod models;

@@ -13,6 +13,13 @@ use std::{
 pub const PAGE_SIZE: usize = 30;
 
 pub trait Hosting: Send + Sync {
+    fn contribution_source(
+        &self,
+        account: &Account,
+        token: Option<&str>,
+        day: Option<time::Date>,
+    ) -> Result<super::contributions::SourceData>;
+
     fn read_collaboration(
         &self,
         account: &Account,
@@ -32,6 +39,11 @@ pub trait Hosting: Send + Sync {
         token: &str,
         query: &super::explorer::ExploreQuery,
     ) -> Result<super::explorer::ExploreResponse>;
+}
+
+pub(super) enum RequestBody<'a> {
+    Query(&'a [(String, String)]),
+    Graphql(serde_json::Value),
 }
 
 pub struct HttpHosting {
@@ -65,6 +77,23 @@ impl HttpHosting {
         query: &[(String, String)],
         limit: u64,
     ) -> Result<(T, HeaderMap)> {
+        self.send(
+            provider,
+            Some(token),
+            endpoint,
+            RequestBody::Query(query),
+            limit,
+        )
+    }
+
+    pub(super) fn send<T: serde::de::DeserializeOwned>(
+        &self,
+        provider: Provider,
+        token: Option<&str>,
+        endpoint: &str,
+        body: RequestBody<'_>,
+        limit: u64,
+    ) -> Result<(T, HeaderMap)> {
         let client = Client::builder()
             .user_agent(concat!("BranchHarbor/", env!("CARGO_PKG_VERSION")))
             .redirect(reqwest::redirect::Policy::none())
@@ -75,13 +104,19 @@ impl HttpHosting {
         let base = provider.api();
         #[cfg(test)]
         let base = self.base_url.as_deref().unwrap_or(base);
-        let mut authorization = HeaderValue::from_str(&format!("Bearer {token}"))
-            .map_err(|_| AppError::new("invalidInput", "The token contains invalid characters."))?;
-        authorization.set_sensitive(true);
-        let mut request = client
-            .get(format!("{base}/{endpoint}"))
-            .header(AUTHORIZATION, authorization)
-            .query(query);
+        let url = format!("{base}/{endpoint}");
+        let mut request = match body {
+            RequestBody::Query(query) => client.get(url).query(query),
+            RequestBody::Graphql(body) => client.post(url).json(&body),
+        };
+        if let Some(token) = token {
+            let mut authorization =
+                HeaderValue::from_str(&format!("Bearer {token}")).map_err(|_| {
+                    AppError::new("invalidInput", "The token contains invalid characters.")
+                })?;
+            authorization.set_sensitive(true);
+            request = request.header(AUTHORIZATION, authorization);
+        }
         if provider == Provider::Github {
             request = request
                 .header("Accept", "application/vnd.github+json")
@@ -213,6 +248,15 @@ struct RemoteRepository {
 }
 
 impl Hosting for HttpHosting {
+    fn contribution_source(
+        &self,
+        account: &Account,
+        token: Option<&str>,
+        day: Option<time::Date>,
+    ) -> Result<super::contributions::SourceData> {
+        self.fetch_contribution_source(account, token, day)
+    }
+
     fn read_collaboration(
         &self,
         account: &Account,
