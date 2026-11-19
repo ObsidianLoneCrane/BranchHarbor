@@ -40,14 +40,18 @@ and require distinct state and configuration.
   branch.
 - Fetch, inspect synchronization status, and pull. Prefer fast-forward-only pull initially; explain
   divergence and provide a recovery path.
-- Create a local repository, create and clone a remote repository, or publish an existing local
-  repository to a selected platform.
+- Create a local repository, clone an existing remote, or push an existing local repository to a
+  configured remote. Creating a hosted repository through a provider API remains planned.
 - Associate additional remotes without assuming `origin` identifies a platform. Matching names alone
   do not establish compatible histories.
 - Show branch creation start points and exact deletion targets. Surface uncommitted changes,
   unmerged commits, and server restrictions before relevant operations.
 - Provide operation progress, results, and actionable failures. Refresh state after cancellation
   because changes may already have completed.
+
+The desktop app implements local registration, working-tree and staged diffs, commits, named
+remotes, synchronization, and basic branch operations. See the [local Git guide](local-git.md) for
+supported transports and validation limits.
 
 Remote-tracking status reflects the latest fetch, not a live server view. The file browser
 identifies the local working tree or selected remote revision. A branch list and commit relationship

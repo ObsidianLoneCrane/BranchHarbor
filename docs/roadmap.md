@@ -59,15 +59,17 @@ Deliver this stage through focused increments:
 Acceptance: document capability differences and calendar limitations from real integration results
 before promising complete cross-provider support.
 
-## Stage 3: everyday local repository workflows - planned
+## Stage 3: everyday local repository workflows - implemented
 
-- Import, clone, create, and associate repositories with multiple remotes.
-- Implement status, diff, staging, commit, fetch, pull, and push.
-- Add basic branch operations, progress, and recovery.
-- Test Git mutations using disposable repositories.
+- Register imported, cloned, or newly initialized local working trees and add multiple named Git
+  remotes.
+- Inspect changes and staged or working-tree diffs, stage or unstage selected files, and commit.
+- Create, switch, and safely delete local branches. Publish or track a branch with an explicit push.
+- Fetch and perform fast-forward-only pulls. Show progress, outcomes, and recovery for Git failures.
 
-Acceptance: complete a change-to-push workflow with identifiable author, account, remote, and branch
-targets.
+Acceptance covers the change-to-push workflow using a disposable local remote and a second clone.
+Live credential-helper and SSH identities depend on the user's Git setup and need native
+verification on the target platforms. See the [local Git guide](local-git.md).
 
 ## Stage 4: personal overview and first usable version - planned
 

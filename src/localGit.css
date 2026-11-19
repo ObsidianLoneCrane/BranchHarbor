@@ -1,0 +1,93 @@
+.local-panel {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.local-panel h2,
+.local-panel h3,
+.local-panel p {
+  margin: 0;
+}
+
+.local-toolbar,
+.local-actions,
+.local-change {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.local-toolbar,
+.local-change {
+  justify-content: space-between;
+}
+
+.local-toolbar h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.local-form,
+.local-field {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.local-form .form-control {
+  width: 100%;
+  min-width: 0;
+}
+
+.local-form textarea.form-control {
+  height: auto;
+  resize: vertical;
+}
+
+.local-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.local-list > li {
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.local-repository-link {
+  display: grid;
+  gap: 0.25rem;
+  color: inherit;
+}
+
+.local-diff {
+  overflow: auto;
+  max-height: 26rem;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.local-metadata {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+  margin: 0;
+}
+
+.local-metadata dd {
+  margin: 0;
+}
+
+.local-metadata dt,
+.local-repository-link span {
+  color: var(--muted);
+}

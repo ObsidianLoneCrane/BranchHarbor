@@ -35,4 +35,7 @@
   that planned tools or workflows already exist.
 - Run checks relevant to the change and state actual results. For docs, check Markdown links,
   English-language consistency, and whitespace.
+- After completing each feature on Windows, run
+  `./scripts/windows/dev.ps1 pnpm build:windows-preview` and report the resulting
+  `.dev-env/target/debug/branchharbor.exe` or the build failure.
 - Follow docs/branching-and-releases.md for synchronization and release planning.

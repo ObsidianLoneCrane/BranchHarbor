@@ -58,6 +58,10 @@ Use `pnpm check`, `pnpm check:rust`, and the browser checks documented in the
 Report actual operating systems tested and unverified targets; a configured matrix is not a runtime
 compatibility claim. Check future Git mutations using disposable repositories.
 
+After completing a feature on Windows, build the local executable with
+`./scripts/windows/dev.ps1 pnpm build:windows-preview` and report the artifact or any build failure.
+See the [Windows preview build](docs/application-scaffold.md#windows-preview-build).
+
 ## Pull requests
 
 The maintainer creates, reviews, and merges PRs on GitHub's website. Prepare the branch, validation

@@ -89,7 +89,7 @@ const { accounts } = useAccounts()
     </div>
   </section>
   <p class="development-note">
-    Account connections and repository discovery are available in the desktop app. Git operations
-    and contribution calendars are coming in later stages.
+    The desktop app connects provider accounts and works with local Git repositories. Open Activity
+    to preview available contribution data.
   </p>
 </template>

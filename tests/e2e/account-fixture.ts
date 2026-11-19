@@ -58,6 +58,7 @@ export async function installAccountFixture(
               architecture: 'Fixture architecture',
             }
           if (command === 'list_accounts') return accounts
+          if (command === 'list_local_repositories') return []
           if (command === 'connect_account') {
             if (args.token === 'invalid-fixture')
               throw { code: 'unauthorized', message: 'Do not echo provider response bodies.' }

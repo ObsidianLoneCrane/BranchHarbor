@@ -5,7 +5,7 @@
 - Home, Repositories, Activity, and Settings with hash-based navigation, history/back support, page
   titles, a skip link, and an unknown-route recovery page.
 - Independent GitHub/Gitee contribution placeholders, explicitly labeled unavailable.
-- Unconnected repository/activity empty states. Repository creation is disabled and explained.
+- Unconnected provider repository and activity empty states.
 - Light, dark, and system appearance, persisted per device; system changes are followed in system
   mode.
 - Read-only native version/platform/architecture information in Settings, with error recovery.
@@ -13,8 +13,8 @@
 - Responsive sidebar, shared design tokens, reduced-motion support, and local assets/fonts only.
 
 The subsequent [provider accounts increment](provider-accounts.md) adds PAT authorization, OS
-credential storage, SQLite account metadata, and paginated repository discovery. Repository mutation
-and automatic updates remain planned. The screenshots below show the unconnected browser preview.
+credential storage, SQLite account metadata, and paginated repository discovery. The screenshots
+below show the unconnected browser preview. Automatic updates remain planned.
 
 The [repository explorer](repository-explorer.md) adds a repository detail route, paginated branch
 selection, immutable directory browsing, and bounded source previews. Its guide records the current
@@ -24,6 +24,9 @@ The [PR/Issue reader](pr-issue-reader.md) adds a lazy discussion route, reposito
 state-filtered lists, details, and paginated general comments. Its validation record supersedes the
 foundation-only test counts below. The [contribution source preview](contribution-sources.md) adds
 source-specific reads to Activity for connected accounts.
+
+The [local Git workspace](local-git.md) adds desktop repository registration, changes, commits,
+branches, and named-remote synchronization. Browser preview disables these native actions.
 
 ## Source layout
 
@@ -64,6 +67,7 @@ Open the [project environment](development-environment.md), then run:
 | `pnpm check`                           | Format, ESLint, types, unit tests, language, links, and version checks |
 | `pnpm check:rust`                      | Rust format, Clippy with warnings denied, and Cargo tests              |
 | `pnpm build`                           | Type-check and generate frontend production assets                     |
+| `pnpm build:windows-preview`           | Build the Windows debug executable with embedded frontend assets       |
 | `pnpm tauri build --bundles nsis --ci` | Windows executable and unsigned test installer                         |
 
 `pnpm format` writes the project's formatting. CI only checks formatting. Rust tests now exercise
@@ -74,6 +78,24 @@ credential; it deletes that entry afterward. CI skips that test by default.
 
 The version `0.1.0` is the scaffold's internal version, not a claim of a published release. Project
 checks enforce matching npm/Cargo/Tauri versions and matching bootstrap toolchain pins.
+
+### Windows preview build
+
+From the repository root after setting up the Windows environment and installing dependencies:
+
+```powershell
+./scripts/windows/dev.ps1 pnpm build:windows-preview
+```
+
+The command builds the frontend and embeds it in `.dev-env/target/debug/branchharbor.exe`, which can
+be opened directly with the existing WebView2 Runtime. To use the project's isolated application
+data and WebView2 profile, launch through the same wrapper:
+
+```powershell
+./scripts/windows/dev.ps1 ./.dev-env/target/debug/branchharbor.exe
+```
+
+Close the preview executable before rebuilding it. The `.dev-env/` directory is ignored by Git.
 
 ### Browser checks
 
