@@ -64,6 +64,10 @@ Run `pnpm check` for frontend/project validation and `pnpm check:rust` for Rust 
 `pnpm dev` for a browser-only preview; it reports browser runtime information instead of pretending
 to be the desktop application.
 
+On Windows, run `./scripts/windows/dev.ps1 pnpm build:windows-preview` from the repository root to
+generate a runnable preview in `.dev-env/target/debug/branchharbor.exe`. See the
+[Windows preview build](docs/application-scaffold.md#windows-preview-build) for launch commands.
+
 Read the [environment guide](docs/development-environment.md) first, including its cleanup and
 isolation notes.
 

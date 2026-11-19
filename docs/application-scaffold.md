@@ -64,6 +64,7 @@ Open the [project environment](development-environment.md), then run:
 | `pnpm check`                           | Format, ESLint, types, unit tests, language, links, and version checks |
 | `pnpm check:rust`                      | Rust format, Clippy with warnings denied, and Cargo tests              |
 | `pnpm build`                           | Type-check and generate frontend production assets                     |
+| `pnpm build:windows-preview`           | Build the Windows debug executable with embedded frontend assets       |
 | `pnpm tauri build --bundles nsis --ci` | Windows executable and unsigned test installer                         |
 
 `pnpm format` writes the project's formatting. CI only checks formatting. Rust tests now exercise
@@ -74,6 +75,24 @@ credential; it deletes that entry afterward. CI skips that test by default.
 
 The version `0.1.0` is the scaffold's internal version, not a claim of a published release. Project
 checks enforce matching npm/Cargo/Tauri versions and matching bootstrap toolchain pins.
+
+### Windows preview build
+
+From the repository root after setting up the Windows environment and installing dependencies:
+
+```powershell
+./scripts/windows/dev.ps1 pnpm build:windows-preview
+```
+
+The command builds the frontend and embeds it in `.dev-env/target/debug/branchharbor.exe`, which can
+be opened directly with the existing WebView2 Runtime. To use the project's isolated application
+data and WebView2 profile, launch through the same wrapper:
+
+```powershell
+./scripts/windows/dev.ps1 ./.dev-env/target/debug/branchharbor.exe
+```
+
+Close the preview executable before rebuilding it. The `.dev-env/` directory is ignored by Git.
 
 ### Browser checks
 
