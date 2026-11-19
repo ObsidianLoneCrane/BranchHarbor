@@ -34,7 +34,9 @@ describe('application navigation', () => {
     const { wrapper, router } = await openApp()
     await wrapper.get('nav a[href="/repositories"]').trigger('click')
     await vi.waitFor(() => expect(wrapper.get('h1').text()).toBe('Repositories'))
-    expect(wrapper.get('button[disabled]').text()).toContain('New repository')
+    expect(
+      wrapper.findAll('button[disabled]').some((button) => button.text() === 'New repository'),
+    ).toBe(true)
     await router.push('/activity')
     await flushPromises()
     expect(wrapper.get('h1').text()).toBe('Activity')

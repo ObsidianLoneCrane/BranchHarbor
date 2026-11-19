@@ -15,10 +15,11 @@ the OS credential store, and loads paginated repository lists with account and v
 The read-only repository explorer adds details, branch selection, directories, and bounded text
 previews with syntax highlighting. Pull requests and Issues have separate read-only lists, state
 filters, details, and paginated discussion comments. The Activity preview reads GitHub contribution
-counts and a Gitee public event sample. Local Git operations and the Home contribution charts remain
-planned. Live private-account verification and macOS/Linux credential-store runtime checks remain
-outstanding; see the [account guide](docs/provider-accounts.md). There are no signed public
-application releases.
+counts and a Gitee public event sample. The desktop app supports local repository import, creation,
+cloning, changes and diffs, staging, commits, branches, and synchronization with configured remotes.
+Home contribution charts remain planned. Live private-account verification and macOS/Linux
+credential-store runtime checks remain outstanding; see the
+[account guide](docs/provider-accounts.md). There are no signed public application releases.
 
 Windows x64 startup, native IPC, and NSIS test packaging have been verified locally. CI is
 configured for Windows x64, macOS ARM64/x64, and Linux x64. CI compilation and real installation
@@ -43,8 +44,8 @@ Gitee contribution data access must be validated before promising parity with it
 
 The app uses Tauri 2, Rust, Vue 3, TypeScript, Vite, Vue Router, and Lucide icons. Rust adapters use
 reqwest for provider APIs, SQLite for account metadata, and keyring for OS credential storage.
-Application dependencies are pinned with pnpm and Cargo lockfiles. Git CLI integration remains
-planned.
+Application dependencies are pinned with pnpm and Cargo lockfiles. Local repository workflows use
+the installed Git CLI.
 
 On Windows, reuse existing Git, Visual Studio C++ tools, Windows SDK, and WebView2:
 
@@ -77,6 +78,10 @@ repositories. Browser preview disables account connections. Read the
 [account guide](docs/provider-accounts.md) for token permissions, storage, recovery, and
 verification limits.
 
+Open **Repositories > Local repositories** to import a working tree, initialize a repository, or
+clone an existing remote. Read the [local Git guide](docs/local-git.md) for supported operations,
+remote targets, and validation.
+
 ## Documentation
 
 Start with the [application scaffold guide](docs/application-scaffold.md) for commands, screenshots,
@@ -88,6 +93,7 @@ implemented behavior, and validation limits.
 | [Architecture](docs/architecture.md)                       | Proposed technology, boundaries, and data model                          |
 | [Provider accounts](docs/provider-accounts.md)             | Account setup, repository discovery, security, and validation            |
 | [Repository explorer](docs/repository-explorer.md)         | Branch selection, pinned directory browsing, and text previews           |
+| [Local Git](docs/local-git.md)                             | Local working trees, commits, branches, and synchronization              |
 | [PR and Issue reader](docs/pr-issue-reader.md)             | Discussion lists, details, comments, provider differences, and limits    |
 | [Contribution sources](docs/contribution-sources.md)       | GitHub contribution counts, Gitee public events, and verification limits |
 | [Development environment](docs/development-environment.md) | Local tools, verification, and removal                                   |

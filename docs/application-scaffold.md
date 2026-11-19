@@ -5,7 +5,7 @@
 - Home, Repositories, Activity, and Settings with hash-based navigation, history/back support, page
   titles, a skip link, and an unknown-route recovery page.
 - Independent GitHub/Gitee contribution placeholders, explicitly labeled unavailable.
-- Unconnected repository/activity empty states. Repository creation is disabled and explained.
+- Unconnected provider repository and activity empty states.
 - Light, dark, and system appearance, persisted per device; system changes are followed in system
   mode.
 - Read-only native version/platform/architecture information in Settings, with error recovery.
@@ -13,8 +13,8 @@
 - Responsive sidebar, shared design tokens, reduced-motion support, and local assets/fonts only.
 
 The subsequent [provider accounts increment](provider-accounts.md) adds PAT authorization, OS
-credential storage, SQLite account metadata, and paginated repository discovery. Repository mutation
-and automatic updates remain planned. The screenshots below show the unconnected browser preview.
+credential storage, SQLite account metadata, and paginated repository discovery. The screenshots
+below show the unconnected browser preview. Automatic updates remain planned.
 
 The [repository explorer](repository-explorer.md) adds a repository detail route, paginated branch
 selection, immutable directory browsing, and bounded source previews. Its guide records the current
@@ -24,6 +24,9 @@ The [PR/Issue reader](pr-issue-reader.md) adds a lazy discussion route, reposito
 state-filtered lists, details, and paginated general comments. Its validation record supersedes the
 foundation-only test counts below. The [contribution source preview](contribution-sources.md) adds
 source-specific reads to Activity for connected accounts.
+
+The [local Git workspace](local-git.md) adds desktop repository registration, changes, commits,
+branches, and named-remote synchronization. Browser preview disables these native actions.
 
 ## Source layout
 

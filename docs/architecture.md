@@ -101,8 +101,10 @@ credential access, and durable state. Expose only needed commands and filesystem
 Invoke Git using paths and argument arrays rather than shell-built strings; prefer stable
 machine-readable output.
 
-Serialize mutations for the same repository, accounting for shared Git state in worktrees. Progress
-events include task and repository identities.
+The [local Git service](local-git.md) uses a separate SQLite database for registered working-tree
+paths. The Rust service resolves operations from a registered ID, serializes Git work across
+registered repositories and their linked worktrees, and runs Git on blocking workers. The UI reads
+current status from Git and refreshes it after changes. Operation results expose stable error codes.
 
 ## Domain model
 
