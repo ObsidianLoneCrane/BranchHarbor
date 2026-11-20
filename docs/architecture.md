@@ -53,6 +53,19 @@ across crashes. Missing/locked credentials remain visible and can be repaired by
 [account storage and recovery](provider-accounts.md#storage-and-recovery) for the detailed policy,
 debug/release separation, cleanup, and remaining live validation.
 
+## Implemented contribution and activity boundary
+
+Provider requests return GitHub calendar or daily counts and a bounded Gitee public event sample.
+The accounts database migrates to schema version 2 and holds normalized contribution results keyed
+by account and optional GitHub UTC day. Cache reads use SQLite without accessing the provider.
+Credential replacement and account deletion invalidate the account's cache in the account
+transaction. Version 1 clients cannot open the migrated database.
+
+The local Git service records working-tree access times in its own database. A background command
+uses the same registered-root checks and Git CLI runner to read bounded UTC-day commit history. The
+Vue dashboard displays distinct provider and local datasets and shares a contribution refresh
+composable with Activity.
+
 ## Remaining technology direction
 
 The [repository explorer](repository-explorer.md) resolves branches to commit/tree SHAs and browses

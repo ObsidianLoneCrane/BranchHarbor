@@ -1,15 +1,17 @@
 # Contribution sources
 
-Open **Activity**, select a connected account, and choose **Load source**. This read-only preview
-inspects one source at a time. The Home contribution charts, detailed activity timeline, caching,
-and offline behavior remain Stage 4 work.
+In the desktop app, open **Home** and refresh the desired platform card. Each card has its own
+account selector, source label, and refresh time. Select a GitHub calendar date and choose **View
+activity** to open Activity for that account and date.
+
+In **Activity**, choose an account and an optional **UTC day**. The date also filters the separate
+local Git activity section. Use **Today** to select the current UTC date.
 
 ## GitHub
 
 - Leave **UTC day** empty to query GitHub's official GraphQL calendar. GitHub defaults to a one-year
-  range ending at the current time. The preview shows its reported range and total. The desktop
-  command also returns the weeks, dates, counts, and contribution levels for the future calendar.
-  Provider dates are preserved as supplied, with no zero filling.
+  range ending at the current time. Home shows its reported range, total, and daily contribution
+  levels. Provider dates are preserved as supplied, including zero-count dates.
 - Set **UTC day** to request the platform's commit, opened pull request, and opened issue
   contribution counts for that day. The request uses inclusive UTC bounds from midnight through the
   last second of the day. These are contribution counts, with no itemized activity, local commits,
@@ -32,26 +34,51 @@ feed, a user event feed, and organization-scoped events. The public endpoint acc
 and a limit. No endpoint for the profile contribution calendar or a date-bounded annual contribution
 history was identified in that specification.
 
-The preview requests the first page of up to 20 events from
+The app requests the first page of up to 20 events from
 `GET /api/v5/users/{username}/events/public`, without sending the saved token. It shows event
 timestamps with their original offsets, event type when supplied, and repository name when
 available. The source has unknown coverage dates. An empty response means that the endpoint returned
-no public events. The app exposes the Gitee calendar as unavailable and does not derive daily or
-annual contribution totals from this feed.
+no public events. Date filtering matches the UTC day of each event timestamp and keeps the supplied
+offset visible. The app exposes the Gitee calendar as unavailable and omits daily and annual
+contribution totals for this feed.
 
 A live anonymous request to the official public endpoint returned HTTP 200 for a public user. The
 sample included older events, a string event ID, a null event type, and timestamps with a `+08:00`
 offset. This verifies the sampled public endpoint shape. Authenticated or private Gitee activity and
 website calendar parity remain unverified.
 
+## Refresh and offline behavior
+
+Home and Activity show the last successful provider response from SQLite when available. Choose
+**Refresh** to request new data. If the provider cannot be reached, the app keeps the saved result
+and displays its refresh time with a **Cached data** label. A first request with no saved data shows
+the error without a count. The app stores a calendar or public sample and up to 30 GitHub day
+responses per connected account. Updating credentials or disconnecting removes that account's cache.
+Tokens stay in the OS credential store.
+
+## Local activity
+
+Home lists up to five recently opened or registered working trees and the first three local commits
+for today. Activity shows up to 20 commits reachable from HEAD in the 12 most recent working trees
+for the selected UTC date. Results use each commit's committer timestamp and show its author,
+subject, and repository. Missing working trees and truncated results have separate notices. Local
+history is read without contacting a remote and remains a separate source from provider contribution
+counts.
+
 ## Validation
 
 Automated fixtures exercise UTC range construction, viewer identity binding, provider date and
 zero-count preservation, GraphQL error handling, and credential-free public event requests. Browser
-tests exercise the account selector and the source-specific states.
+tests exercise account and date selection, the GitHub calendar, Gitee timestamp offsets, local
+activity, and cached results after restart or a failed refresh.
+
+On Windows x64, 50 frontend tests, 41 Rust tests, and 26 Edge end-to-end tests passed. The standard
+Rust suite skips the opt-in Windows credential-store test. The Windows preview executable built
+successfully. This change was verified through Git CLI tests and browser IPC fixtures. Native
+desktop interaction with authenticated providers and cross-platform runtime checks remain pending.
 
 For live acceptance, use a personal account connected through **Settings**. For GitHub, compare the
-preview range and total with the same account and period on GitHub, then query a known UTC day.
+calendar range and total with the same account and period on GitHub, then query a known UTC day.
 Check public and authorized private cases independently, including an account with private
 contribution counts disabled. For Gitee, check the available sample and the unavailable-calendar
 message. Keep tokens and private repository data out of screenshots and reports. Real GitHub PAT

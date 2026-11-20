@@ -4,7 +4,7 @@
 
 - Home, Repositories, Activity, and Settings with hash-based navigation, history/back support, page
   titles, a skip link, and an unknown-route recovery page.
-- Independent GitHub/Gitee contribution placeholders, explicitly labeled unavailable.
+- Separate GitHub and Gitee contribution cards, recent local repositories, and local activity.
 - Unconnected provider repository and activity empty states.
 - Light, dark, and system appearance, persisted per device; system changes are followed in system
   mode.
@@ -22,8 +22,8 @@ test counts, screenshots, limits, and live-validation requirements.
 
 The [PR/Issue reader](pr-issue-reader.md) adds a lazy discussion route, repository task navigation,
 state-filtered lists, details, and paginated general comments. Its validation record supersedes the
-foundation-only test counts below. The [contribution source preview](contribution-sources.md) adds
-source-specific reads to Activity for connected accounts.
+foundation-only test counts below. The [contribution dashboard](contribution-sources.md) adds a
+GitHub calendar, a Gitee public event sample, daily activity, and cached provider data.
 
 The [local Git workspace](local-git.md) adds desktop repository registration, changes, commits,
 branches, and named-remote synchronization. Browser preview disables these native actions.

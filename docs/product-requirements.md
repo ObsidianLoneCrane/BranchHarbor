@@ -61,8 +61,8 @@ graph are separate features; a full interactive graph can follow basic history b
 
 Daily activity and platform contributions are separate datasets. A local commit can appear before
 push; a push is not a contribution count. Provider rules and permissions determine contribution
-visibility. The [source preview](contribution-sources.md) provides GitHub counts and a limited Gitee
-public event sample while full dashboard delivery remains planned.
+visibility. The [dashboard](contribution-sources.md) shows the GitHub calendar, the Gitee public
+event sample, and dated local commits. Activity uses UTC dates with source and refresh labels.
 
 - Store and display GitHub/Gitee calendars independently.
 - Prefer GitHub's official GraphQL contribution calendar where authorized.
@@ -71,8 +71,8 @@ public event sample while full dashboard delivery remains planned.
 - Label application-derived Gitee statistics with their scope and limitations. Do not present
   estimated counts as an official calendar.
 - Do not reconstruct full history from a bounded recent-events feed.
-- Preserve provider calendar dates. Activity timestamps may use a user-selected timezone, with an
-  explicit policy when implemented.
+- Preserve provider calendar dates. Filter Gitee events by their UTC date and display the original
+  timestamp offset. Use Git committer timestamps in UTC for the local activity list.
 - Show refresh time; distinguish unavailable data from zero activity.
 
 ## Interface principles
