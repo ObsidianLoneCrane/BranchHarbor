@@ -1,8 +1,44 @@
 <script setup lang="ts">
 import { ArrowRight, ArrowUpRight, FolderGit2, GitBranch, Link2 } from '@lucide/vue'
+import { onMounted, ref } from 'vue'
+import LocalActivity from '../components/LocalActivity.vue'
 import ProviderCard from '../components/ProviderCard.vue'
 import { useAccounts } from '../composables/accounts'
-const { accounts } = useAccounts()
+import { utcToday } from '../lib/contributions'
+import {
+  displayLocalPath,
+  hasLocalGit,
+  listLocal,
+  localGitError,
+  localRepositoryName,
+  type LocalRepository,
+} from '../lib/localGit'
+import '../contributions.css'
+
+const { accounts, ensureLoaded } = useAccounts()
+const repositories = ref<LocalRepository[]>([])
+const repositoryError = ref('')
+const repositoriesLoading = ref(false)
+const today = utcToday()
+
+async function loadRepositories() {
+  repositoriesLoading.value = true
+  repositoryError.value = ''
+  try {
+    repositories.value = (await listLocal()).slice(0, 5)
+  } catch (error) {
+    repositoryError.value = localGitError(error)
+  } finally {
+    repositoriesLoading.value = false
+  }
+}
+
+onMounted(() => {
+  if (hasLocalGit()) {
+    void ensureLoaded()
+    void loadRepositories()
+  }
+})
 </script>
 
 <template>
@@ -11,7 +47,7 @@ const { accounts } = useAccounts()
       <p class="eyebrow">YOUR WORK, IN ONE PLACE</p>
       <h1 id="page-title" tabindex="-1">A clearer view of your work.</h1>
       <p class="page-description">
-        A little space for your repositories, contributions, and what comes next.
+        View contribution sources, local activity, and recent repositories.
       </p>
     </div>
   </div>
@@ -59,37 +95,48 @@ const { accounts } = useAccounts()
     <div class="section-heading">
       <div>
         <h2 id="contributions-title">Your contributions</h2>
-        <p>Two platforms. Each with its own story.</p>
       </div>
-      <span class="section-note">Separate by design</span>
     </div>
     <div class="provider-grid">
-      <ProviderCard provider="GitHub" /><ProviderCard provider="Gitee" />
+      <ProviderCard provider="github" /><ProviderCard provider="gitee" />
     </div>
   </section>
   <section aria-labelledby="recent-title" class="recent-section">
     <div class="section-heading">
       <div>
-        <h2 id="recent-title">Recent repositories</h2>
-        <p>Pick up where you left off.</p>
+        <h2 id="recent-title">Recent local repositories</h2>
       </div>
       <RouterLink to="/repositories" class="text-link"
         >All repositories<ArrowRight :size="15" aria-hidden="true"
       /></RouterLink>
     </div>
-    <div class="recent-empty">
+    <div v-if="repositoriesLoading || repositoryError" class="panel contribution-panel">
+      <p v-if="repositoriesLoading" role="status">Reading recent repositories…</p>
+      <template v-else>
+        <p role="alert">{{ repositoryError }}</p>
+        <div><button class="button button-secondary" @click="loadRepositories">Retry</button></div>
+      </template>
+    </div>
+    <ul v-else-if="repositories.length" class="panel contribution-panel activity-entries">
+      <li v-for="repository in repositories" :key="repository.id">
+        <RouterLink
+          :to="{ name: 'local-repository', params: { id: repository.id } }"
+          class="text-link"
+          >{{ localRepositoryName(repository.path) }}</RouterLink
+        >
+        <span class="contribution-note">{{ displayLocalPath(repository.path) }}</span>
+      </li>
+    </ul>
+    <div v-else class="recent-empty">
       <div class="muted-icon"><FolderGit2 :size="23" :stroke-width="1.5" aria-hidden="true" /></div>
       <div>
-        <h3>A home for your next project</h3>
-        <p>Your imported and connected repositories will appear here.</p>
+        <h3>No local repositories yet</h3>
+        <p>Import, create, or clone a repository to get started.</p>
       </div>
       <RouterLink to="/repositories" class="icon-button" aria-label="Explore repositories"
         ><ArrowRight :size="18"
       /></RouterLink>
     </div>
   </section>
-  <p class="development-note">
-    The desktop app connects provider accounts and works with local Git repositories. Open Activity
-    to preview available contribution data.
-  </p>
+  <LocalActivity class="recent-section" :day="today" summary />
 </template>

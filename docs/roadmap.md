@@ -71,12 +71,15 @@ Acceptance covers the change-to-push workflow using a disposable local remote an
 Live credential-helper and SSH identities depend on the user's Git setup and need native
 verification on the target platforms. See the [local Git guide](local-git.md).
 
-## Stage 4: personal overview and first usable version - planned
+## Stage 4: personal overview and first usable version - implemented, acceptance pending
 
-- Display separate platform contribution information with source labels.
-- Add dated activity, caching, refresh states, and offline behavior.
-- Complete task-focused UI and basic PR/issue reading workflows.
-- Verify first-usable-version acceptance and unresolved feasibility limits.
+- Home shows independent GitHub calendar and Gitee public event cards, recent local repositories,
+  and a UTC-day local commit summary.
+- Activity shows GitHub daily counts, a UTC-day filter for the Gitee event sample, and local commits
+  from registered working trees. Provider refreshes persist account-scoped data for offline reads.
+- The existing PR and Issue reader provides lists, details, and paginated discussion comments.
+- First-usable-version acceptance still requires authenticated native workflows on target platforms.
+  The Gitee calendar remains unavailable. See the [contribution guide](contribution-sources.md).
 
 ## Stage 5: collaboration and distribution - planned
 

@@ -5,6 +5,7 @@ use super::{
     storage, AccountService,
 };
 use reqwest::StatusCode;
+use rusqlite::{params, Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::sync::Arc;
@@ -40,7 +41,8 @@ const DAY_QUERY: &str = "query($from: DateTime!, $to: DateTime!) {
 #[serde(rename_all = "camelCase")]
 pub struct SourceResponse {
     account_id: String,
-    data: SourceData,
+    refreshed_at: i64,
+    data: serde_json::Value,
 }
 
 #[derive(Serialize)]
@@ -304,11 +306,87 @@ impl AccountService {
             token.as_ref().map(|token| token.as_str()),
             day,
         )?;
+        let data = serde_json::to_value(data).map_err(|_| invalid_response())?;
+        let refreshed_at = time::OffsetDateTime::now_utc().unix_timestamp();
+        save_cache(&connection, &account.id, day, refreshed_at, &data)?;
         Ok(SourceResponse {
             account_id: account.id,
+            refreshed_at,
             data,
         })
     }
+}
+
+fn save_cache(
+    connection: &Connection,
+    account_id: &str,
+    day: Option<Date>,
+    refreshed_at: i64,
+    data: &serde_json::Value,
+) -> Result<()> {
+    let day = day.map(|day| day.to_string()).unwrap_or_default();
+    let transaction = connection
+        .unchecked_transaction()
+        .map_err(|_| AppError::storage())?;
+    transaction.execute(
+        "INSERT INTO contribution_cache VALUES (?1,?2,?3,?4)
+         ON CONFLICT(account_id,day) DO UPDATE SET refreshed_at=excluded.refreshed_at,payload=excluded.payload",
+        params![account_id, day, refreshed_at, data.to_string()],
+    ).map_err(|_| AppError::storage())?;
+    if !day.is_empty() {
+        transaction
+            .execute(
+                "DELETE FROM contribution_cache WHERE account_id=?1 AND day IN (
+                 SELECT day FROM contribution_cache WHERE account_id=?1 AND day<>''
+                 ORDER BY refreshed_at DESC, day DESC LIMIT -1 OFFSET 30
+             )",
+                [account_id],
+            )
+            .map_err(|_| AppError::storage())?;
+    }
+    transaction.commit().map_err(|_| AppError::storage())
+}
+
+fn cached_source(
+    connection: &Connection,
+    account_id: &str,
+    day: Option<Date>,
+) -> Result<Option<SourceResponse>> {
+    storage::get(connection, account_id)?;
+    let day = day.map(|day| day.to_string()).unwrap_or_default();
+    let result: Option<(i64, String)> = connection
+        .query_row(
+            "SELECT refreshed_at,payload FROM contribution_cache WHERE account_id=?1 AND day=?2",
+            params![account_id, day],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .optional()
+        .map_err(|_| AppError::storage())?;
+    result
+        .map(|(refreshed_at, payload)| {
+            let data = serde_json::from_str(&payload).map_err(|_| invalid_response())?;
+            Ok(SourceResponse {
+                account_id: account_id.into(),
+                refreshed_at,
+                data,
+            })
+        })
+        .transpose()
+}
+
+#[tauri::command]
+pub async fn read_cached_contribution_source(
+    service: tauri::State<'_, Arc<AccountService>>,
+    account_id: String,
+    day: Option<String>,
+) -> Result<Option<SourceResponse>> {
+    let day = day.as_deref().map(parse_day).transpose()?;
+    let service = service.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        cached_source(&storage::open(&service.path)?, &account_id, day)
+    })
+    .await
+    .map_err(|_| AppError::storage())?
 }
 
 #[tauri::command]

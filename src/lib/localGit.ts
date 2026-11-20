@@ -5,6 +5,24 @@ export interface LocalRepository {
   path: string
 }
 
+export interface LocalActivity {
+  day: string
+  commits: {
+    repositoryId: number
+    repositoryPath: string
+    hash: string
+    committedAt: number
+    author: string
+    subject: string
+  }[]
+  skippedRepositories: number
+  limited: boolean
+}
+
+export function readLocalActivity(day: string): Promise<LocalActivity> {
+  return invoke('read_local_activity', { day })
+}
+
 export interface LocalChange {
   path: string
   index: string
