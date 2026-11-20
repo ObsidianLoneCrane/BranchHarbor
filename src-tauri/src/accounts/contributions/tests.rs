@@ -15,6 +15,48 @@ fn account(provider: Provider) -> Account {
 }
 
 #[test]
+fn cache_survives_reopen_and_is_scoped_to_account_and_day() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("cache.sqlite");
+    let connection = storage::open(&path).unwrap();
+    let first = account(Provider::Github);
+    let mut second = account(Provider::Gitee);
+    second.id = "second".into();
+    storage::save(&connection, &first).unwrap();
+    storage::save(&connection, &second).unwrap();
+    let data = json!({"source":"githubDay","totalCommitContributions":0});
+    let day = parse_day("2024-02-29").unwrap();
+    save_cache(&connection, &first.id, Some(day), 123, &data).unwrap();
+    drop(connection);
+    let connection = storage::open(&path).unwrap();
+    let saved = cached_source(&connection, &first.id, Some(day))
+        .unwrap()
+        .unwrap();
+    assert_eq!(saved.data, data);
+    assert_eq!(saved.refreshed_at, 123);
+    assert!(cached_source(&connection, &first.id, None)
+        .unwrap()
+        .is_none());
+    assert!(cached_source(&connection, &second.id, Some(day))
+        .unwrap()
+        .is_none());
+    storage::save(&connection, &first).unwrap();
+    assert!(cached_source(&connection, &first.id, Some(day))
+        .unwrap()
+        .is_none());
+    save_cache(&connection, &first.id, Some(day), 123, &data).unwrap();
+    connection
+        .execute("DELETE FROM accounts WHERE id=?1", [&first.id])
+        .unwrap();
+    let count: u32 = connection
+        .query_row("SELECT COUNT(*) FROM contribution_cache", [], |row| {
+            row.get(0)
+        })
+        .unwrap();
+    assert_eq!(count, 0);
+}
+
+#[test]
 fn day_queries_use_utc_boundaries_and_reject_invalid_days() {
     let day = parse_day("2024-02-29").unwrap();
     let body = graphql_body(Some(day));

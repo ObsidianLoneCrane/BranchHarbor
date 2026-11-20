@@ -40,6 +40,7 @@ pub fn run() {
             accounts::explore_repository,
             accounts::read_collaboration,
             accounts::contributions::read_contribution_source,
+            accounts::contributions::read_cached_contribution_source,
             local_git::list_local_repositories,
             local_git::add_local_repository,
             local_git::remove_local_repository,

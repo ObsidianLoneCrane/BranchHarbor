@@ -40,9 +40,23 @@ type GiteeEvents = {
 
 export type ContributionSource = GitHubCalendar | GitHubDay | GiteeEvents
 
+export interface ContributionResponse {
+  accountId: string
+  refreshedAt: number
+  data: ContributionSource
+}
+
 export function readContributionSource(accountId: string, day: string | null) {
-  return native<{ accountId: string; data: ContributionSource }>('read_contribution_source', {
+  return native<ContributionResponse>('read_contribution_source', {
     accountId,
     day,
   })
+}
+
+export function readCachedContributionSource(accountId: string, day: string | null) {
+  return native<ContributionResponse | null>('read_cached_contribution_source', { accountId, day })
+}
+
+export function utcToday() {
+  return new Date().toISOString().slice(0, 10)
 }

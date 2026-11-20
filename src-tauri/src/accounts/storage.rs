@@ -15,7 +15,7 @@ pub fn open(path: &Path) -> Result<Connection> {
     let version: u32 = connection
         .pragma_query_value(None, "user_version", |row| row.get(0))
         .map_err(|_| AppError::storage())?;
-    if version > 1 {
+    if version > 2 {
         return Err(AppError::new(
             "storage",
             "This account database requires a newer application version.",
@@ -27,7 +27,13 @@ pub fn open(path: &Path) -> Result<Connection> {
         id TEXT PRIMARY KEY, provider TEXT NOT NULL CHECK(provider IN ('github','gitee')),
         host TEXT NOT NULL, user_id TEXT NOT NULL, login TEXT NOT NULL,
         name TEXT, verified_at INTEGER NOT NULL
-    ); PRAGMA user_version = 1;",
+    );
+    CREATE TABLE IF NOT EXISTS contribution_cache (
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        day TEXT NOT NULL, refreshed_at INTEGER NOT NULL, payload TEXT NOT NULL,
+        PRIMARY KEY(account_id, day)
+    );
+    PRAGMA user_version = 2;",
         )
         .map_err(|_| AppError::storage())?;
     Ok(connection)
@@ -80,6 +86,12 @@ pub fn save(connection: &Connection, account: &Account) -> Result<()> {
     connection.execute("INSERT INTO accounts(id,provider,host,user_id,login,name,verified_at) VALUES(?1,?2,?3,?4,?5,?6,?7)
         ON CONFLICT(id) DO UPDATE SET login=excluded.login,name=excluded.name,verified_at=excluded.verified_at",
         rusqlite::params![account.id,account.provider.slug(),account.host,account.user_id,account.login,account.name,verified_at])
+        .map_err(|_| AppError::storage())?;
+    connection
+        .execute(
+            "DELETE FROM contribution_cache WHERE account_id=?1",
+            [&account.id],
+        )
         .map_err(|_| AppError::storage())?;
     Ok(())
 }
