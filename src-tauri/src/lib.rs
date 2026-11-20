@@ -46,7 +46,8 @@ pub fn run() {
             local_git::remove_local_repository,
             local_git::read_local_repository,
             local_git::read_local_diff,
-            local_git::change_local_repository
+            local_git::change_local_repository,
+            local_git::activity::read_local_activity
         ])
         .run(tauri::generate_context!())
         .expect("Failed to start BranchHarbor");

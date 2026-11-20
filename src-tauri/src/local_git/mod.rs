@@ -1,3 +1,4 @@
+pub(super) mod activity;
 mod process;
 #[cfg(test)]
 mod tests;
@@ -162,6 +163,9 @@ impl LocalGit {
                 "CREATE TABLE IF NOT EXISTS repositories (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 path TEXT NOT NULL UNIQUE
+            );
+            CREATE TABLE IF NOT EXISTS repository_access (
+                repository_id INTEGER PRIMARY KEY, opened_at INTEGER NOT NULL
             )",
             )
             .map_err(|_| GitError::Storage)?;
@@ -171,7 +175,10 @@ impl LocalGit {
 
 fn list(database: &Connection) -> Result<Vec<Repository>> {
     let mut statement = database
-        .prepare("SELECT id, path FROM repositories ORDER BY id DESC")
+        .prepare(
+            "SELECT id,path FROM repositories LEFT JOIN repository_access ON id=repository_id
+                  ORDER BY opened_at DESC, id DESC",
+        )
         .map_err(|_| GitError::Storage)?;
     let rows = statement
         .query_map([], |row| {
@@ -274,7 +281,21 @@ fn add(database: &Connection, request: AddRepository) -> Result<Repository> {
             |row| row.get(0),
         )
         .map_err(|_| GitError::Storage)?;
+    mark_opened(database, id)?;
     Ok(Repository { id, path })
+}
+
+fn mark_opened(database: &Connection, id: i64) -> Result<()> {
+    let now = time::OffsetDateTime::now_utc().unix_timestamp_nanos() / 1_000_000;
+    let now = i64::try_from(now).map_err(|_| GitError::Storage)?;
+    database
+        .execute(
+            "INSERT INTO repository_access VALUES (?1, ?2)
+         ON CONFLICT(repository_id) DO UPDATE SET opened_at=excluded.opened_at",
+            params![id, now],
+        )
+        .map_err(|_| GitError::Storage)?;
+    Ok(())
 }
 
 fn line(value: String) -> String {
@@ -634,10 +655,19 @@ pub(super) async fn remove_local_repository(
     id: i64,
 ) -> Result<()> {
     with_database(service, move |database| {
-        database
+        let transaction = database
+            .unchecked_transaction()
+            .map_err(|_| GitError::Storage)?;
+        transaction
+            .execute(
+                "DELETE FROM repository_access WHERE repository_id = ?1",
+                [id],
+            )
+            .map_err(|_| GitError::Storage)?;
+        transaction
             .execute("DELETE FROM repositories WHERE id = ?1", params![id])
             .map_err(|_| GitError::Storage)?;
-        Ok(())
+        transaction.commit().map_err(|_| GitError::Storage)
     })
     .await
 }
@@ -648,7 +678,9 @@ pub(super) async fn read_local_repository(
     id: i64,
 ) -> Result<Snapshot> {
     with_database(service, move |database| {
-        snapshot(&registered(database, id)?)
+        let data = snapshot(&registered(database, id)?)?;
+        mark_opened(database, id)?;
+        Ok(data)
     })
     .await
 }
