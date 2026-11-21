@@ -104,9 +104,8 @@ implemented behavior, and validation limits.
 
 ## Contributing
 
-All project-authored content uses English, including comments, documentation, UI text, commit
-messages, and PR titles and descriptions. Update affected documentation in the same change as
-implementation.
+Use English for project documentation, source strings, commits, and PRs. Simplified Chinese UI
+translations live in `src/locales/zh-CN.json`. Update affected documentation alongside code.
 
 Feature work targets `develop`. The maintainer creates and handles PRs on GitHub's website. Read
 [CONTRIBUTING.md](CONTRIBUTING.md) before making changes.

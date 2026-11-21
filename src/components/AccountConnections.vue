@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../lib/locale'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { ArrowRight, LoaderCircle, Plus, RefreshCw, ShieldCheck, X } from '@lucide/vue'
 import { useAccounts } from '../composables/accounts'
@@ -21,7 +22,7 @@ const expected = ref<Account | null>(null)
 const connectError = ref<AccountError | null>(null)
 const actionError = ref<AccountError | null>(null)
 const removing = ref<string | null>(null)
-const notice = ref('')
+const notice = ref<{ message: string; values: Record<string, string> }>()
 const grouped = computed(() =>
   (['github', 'gitee'] as const).map((value) => ({
     provider: value,
@@ -49,10 +50,13 @@ function close() {
 }
 async function connect() {
   connectError.value = null
-  notice.value = ''
+  notice.value = undefined
   try {
     const account = await store.connect(provider.value, token.value, expected.value?.id)
-    notice.value = `${providerName(account.provider)} account @${account.login} is connected.`
+    notice.value = {
+      message: '{provider} account @{login} is connected.',
+      values: { provider: providerName(account.provider), login: account.login },
+    }
     dialog.value?.close()
   } catch (error) {
     connectError.value = accountError(error)
@@ -62,11 +66,14 @@ async function connect() {
 }
 async function disconnect(account: Account) {
   actionError.value = null
-  notice.value = ''
+  notice.value = undefined
   try {
     await store.disconnect(account.id)
     removing.value = null
-    notice.value = `Disconnected @${account.login}. Remote repositories were not changed.`
+    notice.value = {
+      message: 'Disconnected @{login}. Remote repositories were not changed.',
+      values: { login: account.login },
+    }
   } catch (error) {
     actionError.value = accountError(error)
   }
@@ -76,13 +83,17 @@ async function disconnect(account: Account) {
 <template>
   <div class="panel connections-panel">
     <div v-if="!supported" class="connection-info">
-      Open the desktop app to connect accounts. This browser preview does not accept or save tokens.
+      {{
+        t(
+          'Open the desktop app to connect accounts. This browser preview does not accept or save tokens.',
+        )
+      }}
     </div>
-    <p v-if="loading" role="status" class="connection-info">Loading saved accounts...</p>
+    <p v-if="loading" role="status" class="connection-info">{{ t('Loading saved accounts...') }}</p>
     <div v-if="error" class="account-alert" role="alert">
-      <p>{{ error.message }}</p>
+      <p>{{ t(error.message) }}</p>
       <button class="text-button" :disabled="loading || pending" @click="store.refresh">
-        Retry loading accounts
+        {{ t('Retry loading accounts') }}
       </button>
     </div>
     <div v-for="group in grouped" :key="group.provider" class="provider-connections">
@@ -97,20 +108,24 @@ async function disconnect(account: Account) {
           <h3>{{ providerName(group.provider) }}</h3>
           <p>
             {{
-              group.accounts.length
-                ? `${group.accounts.length} connected account${group.accounts.length > 1 ? 's' : ''}`
-                : 'No account connected'
+              t(
+                group.accounts.length > 1
+                  ? '{count} connected accounts'
+                  : group.accounts.length
+                    ? '1 connected account'
+                    : 'No account connected',
+                { count: group.accounts.length },
+              )
             }}
           </p>
         </div>
         <button
           class="button button-secondary"
+          :aria-label="t('Add account to {provider}', { provider: providerName(group.provider) })"
           :disabled="!supported || pending"
           @click="open(group.provider)"
         >
-          <Plus :size="13" aria-hidden="true" />Add account<span class="sr-only">
-            to {{ providerName(group.provider) }}</span
-          >
+          <Plus :size="13" aria-hidden="true" />{{ t('Add account') }}
         </button>
       </div>
       <div v-for="account in group.accounts" :key="account.id" class="saved-account">
@@ -123,45 +138,53 @@ async function disconnect(account: Account) {
           >
           <p :class="{ 'credential-warning': account.credentialStatus !== 'saved' }">
             {{
-              account.credentialStatus === 'saved'
-                ? 'Token saved in system credential storage'
-                : account.credentialStatus === 'missing'
-                  ? 'Saved token is missing. Update the token to reconnect.'
-                  : 'System credential storage is locked or unavailable.'
+              t(
+                account.credentialStatus === 'saved'
+                  ? 'Token saved in system credential storage'
+                  : account.credentialStatus === 'missing'
+                    ? 'Saved token is missing. Update the token to reconnect.'
+                    : 'System credential storage is locked or unavailable.',
+              )
             }}
           </p>
         </div>
         <div class="saved-account-actions">
           <button class="text-button" :disabled="pending" @click="open(account.provider, account)">
-            Update token</button
+            {{ t('Update token') }}</button
           ><button
             class="text-button disconnect-button"
             :disabled="pending"
             @click="removing = removing === account.id ? null : account.id"
           >
-            Disconnect<span class="sr-only"> {{ account.login }}</span>
+            {{ t('Disconnect') }}<span class="sr-only"> {{ account.login }}</span>
           </button>
         </div>
         <div v-if="removing === account.id" class="disconnect-confirm">
           <p>
-            Remove this local connection and its saved token? Repositories and Git configuration
-            will stay as they are.
+            {{
+              t(
+                'Remove this local connection and its saved token? Repositories and Git configuration will stay as they are.',
+              )
+            }}
           </p>
           <div>
             <button class="button button-secondary" :disabled="pending" @click="removing = null">
-              Cancel</button
+              {{ t('Cancel') }}</button
             ><button class="button button-danger" :disabled="pending" @click="disconnect(account)">
-              {{ pending ? 'Removing...' : 'Confirm disconnect' }}
+              {{ t(pending ? 'Removing...' : 'Confirm disconnect') }}
             </button>
           </div>
         </div>
       </div>
     </div>
-    <div v-if="actionError" class="account-alert" role="alert">{{ actionError.message }}</div>
-    <p v-if="notice" class="account-notice" role="status">{{ notice }}</p>
+    <div v-if="actionError" class="account-alert" role="alert">{{ t(actionError.message) }}</div>
+    <p v-if="notice" class="account-notice" role="status">{{ t(notice.message, notice.values) }}</p>
     <div class="panel-footnote">
-      Tokens stay in system credential storage. Platform connections do not configure your Git
-      author identity or SSH/HTTPS credentials.
+      {{
+        t(
+          'Tokens stay in system credential storage. Platform connections do not configure your Git author identity or SSH/HTTPS credentials.',
+        )
+      }}
     </div>
   </div>
   <dialog
@@ -173,14 +196,13 @@ async function disconnect(account: Account) {
   >
     <form @submit.prevent="connect">
       <div class="dialog-heading">
-        <div>
-          <p class="eyebrow">A CONNECTION TO YOUR WORK</p>
-          <h2 id="connect-title">{{ expected ? 'Update account token' : 'Connect an account' }}</h2>
-        </div>
+        <h2 id="connect-title">
+          {{ t(expected ? 'Update account token' : 'Connect an account') }}
+        </h2>
         <button
           type="button"
           class="icon-button"
-          aria-label="Close account form"
+          :aria-label="t('Close account form')"
           :disabled="pending"
           @click="close"
         >
@@ -188,22 +210,29 @@ async function disconnect(account: Account) {
         </button>
       </div>
       <p v-if="expected" class="dialog-description">
-        Verify a new token for @{{ expected.login }} on {{ providerName(expected.provider) }}.
+        {{
+          t('Verify a new token for @{login} on {provider}.', {
+            login: expected.login,
+            provider: providerName(expected.provider),
+          })
+        }}
       </p>
       <p v-else class="dialog-description">
-        Use a personal access token to verify your identity and read your repositories.
+        {{ t('Use a personal access token to verify your identity and read your repositories.') }}
       </p>
-      <label class="field-label" for="account-provider">Platform</label
+      <label class="field-label" for="account-provider">{{ t('Platform') }}</label
       ><select
         id="account-provider"
         v-model="provider"
         class="form-control"
         :disabled="pending || !!expected"
       >
-        <option value="github">GitHub</option>
-        <option value="gitee">Gitee</option>
+        <optgroup class="select-options" label="">
+          <option value="github">GitHub</option>
+          <option value="gitee">Gitee</option>
+        </optgroup>
       </select>
-      <label class="field-label" for="account-token">Personal access token</label
+      <label class="field-label" for="account-token">{{ t('Personal access token') }}</label
       ><input
         id="account-token"
         v-model="token"
@@ -215,31 +244,33 @@ async function disconnect(account: Account) {
         maxlength="4096"
         required
         :disabled="pending"
-        placeholder="Paste a personal access token"
+        :placeholder="t('Paste a personal access token')"
         :aria-invalid="connectError ? 'true' : undefined"
         aria-describedby="token-guidance"
       />
       <p id="token-guidance" class="field-help">
         {{
-          provider === 'github'
-            ? 'Select the repositories you want to view. Allow read access to Contents, Issues, and Pull requests as needed.'
-            : 'Enable user_info and projects for repositories; add pull_requests and issues permissions to read discussions.'
+          t(
+            provider === 'github'
+              ? 'Select the repositories you want to view. Allow read access to Contents, Issues, and Pull requests as needed.'
+              : 'Enable user_info and projects for repositories; add pull_requests and issues permissions to read discussions.',
+          )
         }}
-        Repository coverage depends on the token's permissions.
       </p>
       <div v-if="connectError" class="account-alert" role="alert">
-        {{ connectError.message
+        {{ t(connectError.message)
         }}<span v-if="connectError.retryAfterSeconds">
-          Retry after {{ connectError.retryAfterSeconds }} seconds.</span
+          {{ t('Retry after {count} seconds.', { count: connectError.retryAfterSeconds }) }}</span
         >
       </div>
       <p class="secure-note">
-        <ShieldCheck :size="14" aria-hidden="true" />Stored in your operating system's credential
-        store after verification.
+        <ShieldCheck :size="14" aria-hidden="true" />{{
+          t("Stored in your operating system's credential store after verification.")
+        }}
       </p>
       <div class="dialog-actions">
         <button type="button" class="button button-secondary" :disabled="pending" @click="close">
-          Cancel</button
+          {{ t('Cancel') }}</button
         ><button class="button button-primary" :disabled="pending || !token.trim()">
           <LoaderCircle
             v-if="pending"
@@ -250,7 +281,9 @@ async function disconnect(account: Account) {
             v-else
             :size="14"
             aria-hidden="true"
-          />{{ pending ? 'Verifying...' : expected ? 'Verify and update' : 'Verify and connect' }}
+          />{{
+            t(pending ? 'Verifying...' : expected ? 'Verify and update' : 'Verify and connect')
+          }}
         </button>
       </div>
     </form>

@@ -14,7 +14,10 @@ let links = 0
 for (const file of files) {
   if (!/\.(?:md|json|[cm]?js|ts|vue|css|html|svg|rs|toml|ya?ml|ps1)$/.test(file)) continue
   const text = readFileSync(file, 'utf8')
-  if (/\p{Script=Han}|[\u3000-\u303f\uff00-\uffef]/u.test(text))
+  if (
+    file !== 'src/locales/zh-CN.json' &&
+    /\p{Script=Han}|[\u3000-\u303f\uff00-\uffef]/u.test(text)
+  )
     errors.push(`Unexpected CJK text: ${file}`)
   if (!file.endsWith('.md')) continue
   if (text.split(/\r?\n/).filter((line) => /^```/.test(line)).length % 2)

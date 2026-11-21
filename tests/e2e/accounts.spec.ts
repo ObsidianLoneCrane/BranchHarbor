@@ -1,5 +1,35 @@
 import { expect, test } from '@playwright/test'
+import zh from '../../src/locales/zh-CN.json' with { type: 'json' }
 import { installAccountFixture } from './account-fixture'
+
+test('localizes account forms, verification errors, and feedback when the language changes', async ({
+  page,
+}) => {
+  await installAccountFixture(page, { initial: true })
+  await page.setViewportSize({ width: 720, height: 560 })
+  await page.goto('/#/settings')
+  await page.getByRole('combobox', { name: 'Language' }).selectOption('zh-CN')
+  await page.getByRole('button', { name: zh['Update token'] }).click()
+  const dialog = page.getByRole('dialog', { name: zh['Update account token'] })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('button', { name: zh['Close account form'] })).toBeVisible()
+  const token = dialog.getByPlaceholder(zh['Paste a personal access token'])
+  await token.fill('invalid-fixture')
+  await dialog.getByRole('button', { name: zh['Verify and update'] }).click()
+  await expect(dialog.getByRole('alert')).toContainText(
+    zh['The token is invalid or expired. Update the account token in Settings.'],
+  )
+  await token.fill('synthetic-github-token')
+  await dialog.getByRole('button', { name: zh['Verify and update'] }).click()
+  await expect(dialog).toBeHidden()
+  await expect(page.getByRole('status')).toHaveText(
+    zh['{provider} account @{login} is connected.']
+      .replace('{provider}', 'GitHub')
+      .replace('{login}', 'alice'),
+  )
+  await page.getByRole('button', { name: zh['Switch language'] }).click()
+  await expect(page.getByRole('status')).toHaveText('GitHub account @alice is connected.')
+})
 
 test('connects two platforms, paginates repositories, restores metadata, and disconnects safely', async ({
   page,

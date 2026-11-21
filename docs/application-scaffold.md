@@ -10,7 +10,10 @@
   mode.
 - Read-only native version/platform/architecture information in Settings, with error recovery.
   Browser preview is labeled as a browser and never invents native runtime information.
-- Responsive sidebar, shared design tokens, reduced-motion support, and local assets/fonts only.
+- Responsive top navigation, shared design tokens, reduced-motion support, and local assets/fonts
+  only.
+- English and Simplified Chinese interface text, including account and repository feedback. The
+  language is stored per device.
 
 The subsequent [provider accounts increment](provider-accounts.md) adds PAT authorization, OS
 credential storage, SQLite account metadata, and paginated repository discovery. The screenshots
@@ -115,7 +118,29 @@ compatibility. Failure traces are written under ignored `test-results/`.
 
 ## Interface previews
 
-The following are real browser-preview captures. Placeholder calendars carry no fetched data.
+The interface bundles Inter Variable and uses Microsoft YaHei UI or Noto Sans CJK SC for Simplified
+Chinese glyphs. Code uses Cascadia Mono with system fallbacks. The scale uses 21–24 px for page
+headings, 15 px for task headings, 13 px for body text, controls and code, and 12 px for secondary
+labels. Standard control height is at least 36 px. An 8/12/16/24 px spacing scale separates
+controls, panels, and pages. Light and dark themes use slate surfaces with teal for selection, green
+for additions, and red for removals. Diff prefixes and selection indicators remain available in both
+themes.
+
+The desktop window opens at 1080 × 700 logical pixels and can shrink to 720 × 560. Settings has an
+inset language row above the theme controls. The language menu opens when the user activates the
+control. Dropdowns use the browser's select behavior with theme colors when the webview supports
+customizable selects. Pages, scrollable panels, and dropdown menus share arrow-free scrollbars in
+WebView2. The track is transparent, and each theme uses a translucent slate-blue thumb that gains
+contrast on hover or drag. Forced-colors mode uses the system scrollbar.
+
+The top navigation uses one row at desktop widths and two rows in narrow windows.
+
+The layout applies the [Fluent 2 spacing guidance](https://fluent2.microsoft.design/layout),
+[Impeccable](https://github.com/pbakaus/impeccable) principles for reducing visual noise, and the
+[Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines) for long text,
+keyboard focus, and responsive layout.
+
+The screenshots use the browser preview.
 
 ![Home in light mode](images/home-light.png)
 
