@@ -3,8 +3,9 @@
 Open **Repositories > Local repositories** in the desktop app. The local list is independent of
 connected provider accounts and uses the Git installation available to the desktop process.
 
-- **Import repository** accepts the full path to a working tree or a folder within it and registers
-  its root. Importing the same canonical path reopens the existing entry.
+- **Import repository** opens the operating system's folder picker. Select a working tree or a
+  folder within it to register its root. Canceling leaves the list as it was. Importing the same
+  canonical path reopens the existing entry.
 - **New repository** initializes an empty or new folder with the initial branch `main`. For new
   folders, the parent must exist.
 - **Clone repository** clones an existing remote into an empty or new folder and registers the

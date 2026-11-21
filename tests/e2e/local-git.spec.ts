@@ -7,6 +7,7 @@ test('imports a working tree, commits staged changes, and pushes to an explicit 
     const repository = { id: 1, path: 'C:\\Projects\\Example project' }
     const url = 'https://github.com/example/project.git'
     let imported = false
+    let pickerOpened = false
     let index = '?'
     let head: string | null = null
     let upstream: string | null = null
@@ -16,6 +17,11 @@ test('imports a working tree, commits staged changes, and pushes to an explicit 
         async invoke(command: string, args: Record<string, unknown> = {}) {
           if (command === 'list_accounts') return []
           if (command === 'list_local_repositories') return imported ? [repository] : []
+          if (command === 'pick_repository_folder') {
+            if (pickerOpened) return repository.path
+            pickerOpened = true
+            return null
+          }
           if (command === 'add_local_repository') {
             const request = args.request as { kind: string; path: string }
             if (request.kind !== 'import' || request.path !== repository.path) throw 'invalidInput'
@@ -76,8 +82,8 @@ test('imports a working tree, commits staged changes, and pushes to an explicit 
 
   await page.goto('/#/repositories')
   await page.getByRole('button', { name: 'Import repository' }).click()
-  await page.getByLabel('Repository folder path').fill('C:\\Projects\\Example project')
-  await page.getByRole('button', { name: 'Import', exact: true }).click()
+  await expect(page.getByText('No local repositories yet.')).toBeVisible()
+  await page.getByRole('button', { name: 'Import repository' }).click()
   await expect(page.getByRole('heading', { name: 'Example project' })).toBeVisible()
   await page.getByRole('button', { name: 'View diff' }).click()
   await expect(page.getByText('+Example content')).toBeVisible()

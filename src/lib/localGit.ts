@@ -68,6 +68,7 @@ export type LocalOperation =
     }
 
 const errors: Record<string, string> = {
+  folderPicker: 'The folder picker could not be opened. Try again.',
   invalidInput: 'Check the folder, file, or branch name and try again.',
   invalidRepository: 'This folder is not within an accessible Git working tree.',
   missingFolder: 'This folder is missing or inaccessible. If it moved, import the new location.',
@@ -104,6 +105,10 @@ export function localGitError(error: unknown): string {
 
 export function hasLocalGit() {
   return isTauri()
+}
+
+export function pickRepositoryFolder(title: string) {
+  return invoke<string | null>('pick_repository_folder', { title })
 }
 
 export function displayLocalPath(path: string) {

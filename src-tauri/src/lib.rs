@@ -15,9 +15,33 @@ fn get_runtime_info() -> RuntimeInfo {
     }
 }
 
+#[tauri::command]
+async fn pick_repository_folder(
+    window: tauri::WebviewWindow,
+    title: String,
+) -> Result<Option<String>, &'static str> {
+    let dialog = window.dialog().file().set_parent(&window).set_title(title);
+    tauri::async_runtime::spawn_blocking(move || {
+        dialog
+            .blocking_pick_folder()
+            .map(|selected| {
+                selected
+                    .into_path()
+                    .map_err(|_| "folderPicker")?
+                    .into_os_string()
+                    .into_string()
+                    .map_err(|_| "unsupportedText")
+            })
+            .transpose()
+    })
+    .await
+    .map_err(|_| "folderPicker")?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let root = app.path().app_local_data_dir()?;
             #[cfg(debug_assertions)]
@@ -42,6 +66,7 @@ pub fn run() {
             accounts::contributions::read_contribution_source,
             accounts::contributions::read_cached_contribution_source,
             local_git::list_local_repositories,
+            pick_repository_folder,
             local_git::add_local_repository,
             local_git::remove_local_repository,
             local_git::read_local_repository,
@@ -56,3 +81,4 @@ mod accounts;
 mod local_git;
 use std::sync::Arc;
 use tauri::Manager;
+use tauri_plugin_dialog::DialogExt;
