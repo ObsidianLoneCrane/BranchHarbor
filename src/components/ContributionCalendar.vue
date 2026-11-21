@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../lib/locale'
 import { computed } from 'vue'
 import type { ContributionSource } from '../lib/contributions'
 
@@ -12,7 +13,7 @@ const levels = ['NONE', 'FIRST_QUARTILE', 'SECOND_QUARTILE', 'THIRD_QUARTILE', '
 
 <template>
   <p>
-    <strong>{{ source.calendar.totalContributions }} contributions</strong>
+    <strong>{{ t('{count} contributions', { count: source.calendar.totalContributions }) }}</strong>
   </p>
   <p class="contribution-note">
     {{ source.startedAt.slice(0, 10) }} to {{ source.endedAt.slice(0, 10) }}
@@ -26,7 +27,9 @@ const levels = ['NONE', 'FIRST_QUARTILE', 'SECOND_QUARTILE', 'THIRD_QUARTILE', '
         tabindex="-1"
         :data-level="Math.max(0, levels.indexOf(item.contributionLevel))"
         :style="{ gridRow: new Date(item.date + 'T00:00:00Z').getUTCDay() + 1 }"
-        :title="`${item.date} · ${item.contributionCount} contributions`"
+        :title="
+          t('{day} · {count} contributions', { day: item.date, count: item.contributionCount })
+        "
         :class="{ 'calendar-selected': selected === item.date }"
         @click="selected = item.date"
       />
@@ -34,10 +37,12 @@ const levels = ['NONE', 'FIRST_QUARTILE', 'SECOND_QUARTILE', 'THIRD_QUARTILE', '
   </div>
   <div v-if="days.length" class="contribution-controls">
     <label class="contribution-field">
-      Calendar day
+      {{ t('Calendar day') }}
       <select v-model="selected" class="form-control">
-        <option value="">Choose a day</option>
-        <option v-for="item in days" :key="item.date" :value="item.date">{{ item.date }}</option>
+        <optgroup class="select-options" label="">
+          <option value="">{{ t('Choose a day') }}</option>
+          <option v-for="item in days" :key="item.date" :value="item.date">{{ item.date }}</option>
+        </optgroup>
       </select>
     </label>
     <button
@@ -46,12 +51,17 @@ const levels = ['NONE', 'FIRST_QUARTILE', 'SECOND_QUARTILE', 'THIRD_QUARTILE', '
       :disabled="!day"
       @click="day && $emit('select', day.date)"
     >
-      View activity
+      {{ t('View activity') }}
     </button>
   </div>
-  <p v-if="day" aria-live="polite">{{ day.date }} · {{ day.contributionCount }} contributions</p>
+  <p v-if="day" aria-live="polite">
+    {{ t('{day} · {count} contributions', { day: day.date, count: day.contributionCount }) }}
+  </p>
   <p v-if="source.restrictedContributionsCount" class="contribution-note">
-    GitHub reports {{ source.restrictedContributionsCount }} restricted contributions without
-    details.
+    {{
+      t('GitHub reports {count} restricted contributions without details.', {
+        count: source.restrictedContributionsCount,
+      })
+    }}
   </p>
 </template>

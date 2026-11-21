@@ -62,7 +62,8 @@ graph are separate features; a full interactive graph can follow basic history b
 Daily activity and platform contributions are separate datasets. A local commit can appear before
 push; a push is not a contribution count. Provider rules and permissions determine contribution
 visibility. The [dashboard](contribution-sources.md) shows the GitHub calendar, the Gitee public
-event sample, and dated local commits. Activity uses UTC dates with source and refresh labels.
+event sample, and dated local commits. Activity opens on the current UTC date and lets users choose
+an earlier date. Source and refresh labels identify the data shown.
 
 - Store and display GitHub/Gitee calendars independently.
 - Prefer GitHub's official GraphQL contribution calendar where authorized.
@@ -77,14 +78,16 @@ event sample, and dated local commits. Activity uses UTC dates with source and r
 
 ## Interface principles
 
-Primary destinations are Home, Repositories, Activity, and Settings. Home should show separate
-contribution cards, a brief daily summary, and recent repositories. Repository details use
-task-focused Changes, Files, History, Branches, Pull Requests, and Issues views.
+Primary destinations are Home, Repositories, Activity, and Settings. Home shows contribution
+summaries, a brief daily summary, and recent local repositories. Activity holds the full calendar
+and events. Repository details use task-focused Changes, Files, History, Branches, Pull Requests,
+and Issues views.
 
 Show the current task's information first. Load large trees and lists incrementally. Keep advanced
 options and logs expandable. Use consistent spacing, accessible controls, restrained colors, and
 clear empty/loading/error/offline states. Plan light and dark themes. The first scaffold must label
-unavailable features honestly.
+unavailable features honestly. The UI offers English and Simplified Chinese and preserves repository
+data as supplied.
 
 ## Non-functional requirements
 

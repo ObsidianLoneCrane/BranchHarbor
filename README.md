@@ -13,13 +13,15 @@ and Settings; light/dark/system appearance; local quality checks; and a cross-pl
 The desktop app connects GitHub/Gitee accounts with personal access tokens, stores credentials in
 the OS credential store, and loads paginated repository lists with account and visibility filters.
 The read-only repository explorer adds details, branch selection, directories, and bounded text
-previews with syntax highlighting. Pull requests and Issues have separate read-only lists, state
-filters, details, and paginated discussion comments. Home shows the GitHub contribution calendar, a
-Gitee public event sample, recent local repositories, and today's local commits. Activity supports
-UTC date selection, manual refresh, and offline reading of previously refreshed provider data. The
-desktop app supports local repository import, creation, cloning, changes and diffs, staging,
-commits, branches, and synchronization with configured remotes. Live private-account verification
-and macOS/Linux credential-store runtime checks remain outstanding; see the
+previews with syntax highlighting. The workspace adds expandable file trees, local commit history,
+and an English or Simplified Chinese UI preference. Pull requests and Issues offer read-only lists,
+state filters, details, and paginated discussion comments. Home prioritizes recent local
+repositories and today's commits, with platform summaries below. Activity contains the full GitHub
+calendar and Gitee public event sample. It opens on the current UTC date and supports earlier dates,
+manual refresh, and offline reading of previously refreshed provider data. The desktop app supports
+local repository import, creation, cloning, changes and diffs, staging, commits, branches, and
+synchronization with configured remotes. Live private-account verification and macOS/Linux
+credential-store runtime checks remain outstanding; see the
 [account guide](docs/provider-accounts.md). There are no signed public application releases.
 
 Windows x64 startup, native IPC, and NSIS test packaging have been verified locally. CI is

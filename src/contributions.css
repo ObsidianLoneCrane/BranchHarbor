@@ -42,6 +42,10 @@
   width: 100%;
 }
 
+.activity-date-field {
+  inline-size: 11rem;
+}
+
 .contribution-note {
   color: var(--muted);
   font-size: 0.85rem;

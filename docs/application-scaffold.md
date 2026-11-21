@@ -13,7 +13,8 @@
 - Responsive top navigation, shared design tokens, reduced-motion support, and local assets/fonts
   only.
 - English and Simplified Chinese interface text, including account and repository feedback. The
-  language is stored per device.
+  language is stored per device. Native picker buttons and chrome use the operating system's
+  language.
 
 The subsequent [provider accounts increment](provider-accounts.md) adds PAT authorization, OS
 credential storage, SQLite account metadata, and paginated repository discovery. The screenshots
@@ -133,14 +134,18 @@ customizable selects. Pages, scrollable panels, and dropdown menus share arrow-f
 WebView2. The track is transparent, and each theme uses a translucent slate-blue thumb that gains
 contrast on hover or drag. Forced-colors mode uses the system scrollbar.
 
-The top navigation uses one row at desktop widths and two rows in narrow windows.
+The top navigation uses one row at desktop widths and two rows in narrow windows. Home puts recent
+repositories first and shows today's local commits beside them when there is space. Repository rows
+share a 20 px content inset with the panel heading. Each row opens its repository, with the name
+above the path. The full path is available on hover. Provider summaries below the work panels lead
+to Activity for the full calendar or event sample.
 
 The layout applies the [Fluent 2 spacing guidance](https://fluent2.microsoft.design/layout),
 [Impeccable](https://github.com/pbakaus/impeccable) principles for reducing visual noise, and the
 [Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines) for long text,
 keyboard focus, and responsive layout.
 
-The screenshots use the browser preview.
+The Home screenshots use sample repositories and commits. Settings uses the browser preview.
 
 ![Home in light mode](images/home-light.png)
 

@@ -81,10 +81,37 @@ verification on the target platforms. See the [local Git guide](local-git.md).
 - First-usable-version acceptance still requires authenticated native workflows on target platforms.
   The Gitee calendar remains unavailable. See the [contribution guide](contribution-sources.md).
 
-## Stage 5: collaboration and distribution - planned
+## Frontend optimization - current priority
+
+The workspace uses a common typography and spacing scale. Files, Changes, and History support
+resizable desktop panes and a list-to-detail flow in narrow windows.
+
+Home uses an inset repository list and compact activity summary. The main navigation runs across the
+top to leave more width for repository content. Inter is bundled for offline rendering.
+
+The first implementation introduces task tabs for local repositories, expandable local and remote
+directory trees, a local commit graph, and a persisted language switch. Home surfaces recent work
+and contribution summaries. Activity holds the full calendar and switches between platform data and
+local history.
+
+- Refine the visual hierarchy, typography, spacing, and light and dark themes across the existing
+  desktop views. Check readability in both English and Simplified Chinese.
+- Make nested repository workflows easy to follow with breadcrumbs, a clear current location, and
+  predictable back navigation that restores the previous context.
+- Add an expandable repository directory tree and a Git commit graph that uses parent relationships
+  to show branch and merge history. Label branch or tag references where available.
+- Add a persistent language preference for English and Simplified Chinese. Translate application UI
+  strings and preserve repository names, paths, and commit messages as supplied.
+
+Acceptance includes navigating a deeply nested directory and returning to its original context,
+reading a history with diverging branches and a merge, and switching languages across the existing
+views without losing the current task. Validate light and dark themes, keyboard navigation, and
+readability at the supported window sizes.
+
+## Stage 5: collaboration and distribution - deferred
 
 - Add PR/issue creation, comments, state changes, and supported merge workflows.
-- Improve commit visualization and conflict assistance.
+- Add conflict assistance.
 - Implement release builds, signing, update channels, and migration checks.
 - Verify clean installation and upgrades for each declared distribution target.
 

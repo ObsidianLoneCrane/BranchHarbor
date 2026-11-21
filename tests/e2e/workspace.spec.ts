@@ -4,7 +4,7 @@ test('workspace navigation, theme persistence, and unavailable actions', async (
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('A clearer view of your work.')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Overview')
   await expect(page.getByRole('region', { name: 'GitHub contributions' })).toContainText(
     'Not connected',
   )
@@ -37,7 +37,7 @@ test('keyboard access and unknown route recovery', async ({ page }) => {
   await page.keyboard.press('Enter')
   await expect(page.locator('main')).toBeFocused()
   await page.getByRole('link', { name: 'Back to Home' }).click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('A clearer view of your work.')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Overview')
 })
 
 test('the language menu stays hidden until opened', async ({ page }) => {
