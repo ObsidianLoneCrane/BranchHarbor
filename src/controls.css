@@ -1,0 +1,138 @@
+:root {
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+* {
+  scrollbar-width: thin;
+}
+
+@supports selector(::-webkit-scrollbar) {
+  @media (forced-colors: none) {
+    :root,
+    * {
+      scrollbar-width: auto;
+      scrollbar-color: auto;
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-button {
+      display: none;
+    }
+
+    ::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      min-width: 24px;
+      min-height: 24px;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      background: var(--scroll-thumb) padding-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover,
+    ::-webkit-scrollbar-thumb:active {
+      background-color: var(--scroll-thumb-hover);
+    }
+  }
+}
+
+select.form-control {
+  cursor: pointer;
+  min-inline-size: 0;
+}
+
+select.form-control:enabled:hover {
+  border-color: var(--muted);
+}
+
+select.form-control:disabled {
+  cursor: default;
+}
+
+@supports (appearance: base-select) {
+  select.form-control,
+  select.form-control::picker(select) {
+    appearance: base-select;
+  }
+
+  select.form-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  select.form-control::picker-icon {
+    color: var(--muted);
+    transition: rotate 120ms ease;
+  }
+
+  select.form-control:open::picker-icon {
+    rotate: 180deg;
+  }
+
+  select.form-control::picker(select) {
+    margin-block: 4px;
+    padding: 4px;
+    max-inline-size: min(28rem, calc(100vw - 24px));
+    max-block-size: min(19rem, 45vh);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--popover-shadow);
+  }
+
+  select.form-control:open:has(> .select-options)::picker(select) {
+    display: flex;
+    flex-direction: column;
+    overflow: clip;
+  }
+
+  select.form-control > .select-options {
+    display: block;
+    min-block-size: 0;
+    overflow: auto;
+  }
+
+  select.form-control > .select-options::before {
+    display: none;
+  }
+
+  select.form-control option {
+    gap: 8px;
+    min-block-size: 32px;
+    padding: 6px 8px;
+    border-radius: 5px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  select.form-control option:checked {
+    background: var(--accent-soft);
+    font-weight: 600;
+  }
+
+  select.form-control option:enabled:is(:hover, :focus-visible) {
+    background: var(--hover);
+  }
+
+  select.form-control option::checkmark {
+    color: var(--accent);
+  }
+}
+
+@media (forced-colors: active) {
+  *,
+  select.form-control::picker(select) {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
+}

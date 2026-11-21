@@ -28,6 +28,7 @@ export function createExplorer(bridge: ExplorerBridge = explore) {
     revision: null as Data<'branch'> | null,
     crumbs: [] as Crumb[],
     directory: null as Data<'directory'> | null,
+    directories: new Map<string, Data<'directory'>>(),
     entry: null as TreeEntry | null,
     preview: null as Data<'file'> | null,
     special: '',
@@ -98,12 +99,14 @@ export function createExplorer(bridge: ExplorerBridge = explore) {
     if (ticket === generation) {
       if (directory.sha !== revision.treeSha) throw new AccountError('invalidResponse')
       state.directory = directory
+      state.directories.set(revision.treeSha, directory)
     }
   }
   function resetContent() {
     state.revision = null
     state.crumbs = []
     state.directory = null
+    state.directories.clear()
     state.entry = null
     state.preview = null
     state.special = ''
@@ -178,19 +181,23 @@ export function createExplorer(bridge: ExplorerBridge = explore) {
       'directory',
       () => directory(crumbs),
       async (ticket) => {
-        const result = await request(target, { kind: 'directory', sha: last.sha })
+        const result =
+          state.directories.get(last.sha) ??
+          (await request(target, { kind: 'directory', sha: last.sha }))
         if (ticket === generation) {
           if (result.sha !== last.sha) throw new AccountError('invalidResponse')
           state.directory = result
+          if (state.directories.size < 64) state.directories.set(last.sha, result)
         }
       },
     )
   }
-  async function selectEntry(entry: TreeEntry) {
+  async function selectEntry(entry: TreeEntry, crumbs = state.crumbs) {
     const target = state.target
     if (!target) return
-    if (entry.type === 'tree')
-      return directory([...state.crumbs, { name: entry.path, sha: entry.sha }])
+    if (entry.type === 'tree') return directory([...crumbs, { name: entry.path, sha: entry.sha }])
+    state.crumbs = [...crumbs]
+    state.directory = state.directories.get(crumbs.at(-1)?.sha ?? '') ?? null
     state.entry = entry
     state.preview = null
     state.special = ''

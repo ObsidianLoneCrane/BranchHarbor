@@ -5,11 +5,9 @@ Start with the [README](README.md), [requirements](docs/product-requirements.md)
 
 ## Language
 
-Use English for all project-authored content: documentation, source comments, application text, log
-and error messages, test names and fixtures, issue templates, commit messages, and PR titles and
-descriptions. Do not introduce Chinese prose. External service responses and user-controlled
-repository data are not authored project text; preserve them as data rather than translating or
-rejecting them.
+Use English for documentation, source comments, source UI strings, test fixtures, issue templates,
+commit messages, and PR text. Put Simplified Chinese UI translations in `src/locales/zh-CN.json`.
+Preserve external service responses and user-controlled repository data as supplied.
 
 ## Environment
 

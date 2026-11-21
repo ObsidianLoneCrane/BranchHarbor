@@ -1,19 +1,20 @@
 <script setup lang="ts">
+import { t } from '../lib/locale'
 import type { AccountError } from '../lib/accounts'
 defineProps<{ error: AccountError; remaining: number; busy: boolean }>()
 defineEmits<{ retry: [] }>()
 </script>
 <template>
   <div class="account-alert reader-error" role="alert">
-    <p>{{ error.message }}</p>
+    <p>{{ t(error.message) }}</p>
     <div class="repository-error-actions">
-      <span v-if="remaining">Try again in {{ remaining }} seconds.</span
+      <span v-if="remaining">{{ t('Try again in {count} seconds.', { count: remaining }) }}</span
       ><button
         class="button button-secondary"
         :disabled="busy || remaining > 0"
         @click="$emit('retry')"
       >
-        Retry</button
+        {{ t('Retry') }}</button
       ><RouterLink
         v-if="
           [
@@ -26,7 +27,7 @@ defineEmits<{ retry: [] }>()
         "
         to="/settings"
         class="text-link"
-        >Manage account</RouterLink
+        >{{ t('Manage account') }}</RouterLink
       >
     </div>
   </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../lib/locale'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 const route = useRoute()
@@ -13,12 +14,12 @@ const selected = computed(() =>
 </script>
 
 <template>
-  <nav class="repository-tabs" aria-label="Repository navigation">
+  <nav class="repository-tabs" :aria-label="t('Repository navigation')">
     <RouterLink
       :to="{ name: 'repository-explorer', params: target }"
       :class="{ active: selected === 'files' }"
       :aria-current="selected === 'files' ? 'page' : undefined"
-      >Files</RouterLink
+      >{{ t('Files') }}</RouterLink
     >
     <RouterLink
       v-for="resource in ['pulls', 'issues'] as const"
@@ -26,7 +27,7 @@ const selected = computed(() =>
       :to="{ name: 'repository-reader', params: { ...target, resource } }"
       :class="{ active: selected === resource }"
       :aria-current="selected === resource ? 'page' : undefined"
-      >{{ resource === 'pulls' ? 'Pull requests' : 'Issues' }}</RouterLink
+      >{{ t(resource === 'pulls' ? 'Pull requests' : 'Issues') }}</RouterLink
     >
   </nav>
 </template>

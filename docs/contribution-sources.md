@@ -1,21 +1,22 @@
 # Contribution sources
 
-In the desktop app, open **Home** and refresh the desired platform card. Each card has its own
-account selector, source label, and refresh time. Select a GitHub calendar date and choose **View
-activity** to open Activity for that account and date.
+In the desktop app, open **Home** and refresh the desired platform summary. Each card has an account
+selector, source label, and refresh time. Use **Open activity** to view the selected account's
+activity for today.
 
-In **Activity**, choose an account and an optional **UTC day**. The date also filters the separate
-local Git activity section. Use **Today** to select the current UTC date.
+**Activity** defaults to the current UTC date. Use the date picker to review an earlier day. The
+selected date applies to the platform and local Git views. A link to a valid earlier day opens that
+day directly.
 
 ## GitHub
 
-- Leave **UTC day** empty to query GitHub's official GraphQL calendar. GitHub defaults to a one-year
-  range ending at the current time. Home shows its reported range, total, and daily contribution
-  levels. Provider dates are preserved as supplied, including zero-count dates.
-- Set **UTC day** to request the platform's commit, opened pull request, and opened issue
-  contribution counts for that day. The request uses inclusive UTC bounds from midnight through the
-  last second of the day. These are contribution counts, with no itemized activity, local commits,
-  push-event counts, or merge counts.
+- Select **Show contribution calendar** to open GitHub's official GraphQL calendar. It defaults to a
+  one-year range ending at the current time and shows its reported dates, total, and contribution
+  levels. Choose a calendar day and select **View activity** to open its daily counts.
+- Use **UTC date** to view the platform's commit, opened pull request, and opened issue contribution
+  counts for that day. The request uses inclusive UTC bounds from midnight through the last second
+  of the day. These are contribution counts, with no itemized activity, local commits, push-event
+  counts, or merge counts.
 - GitHub reports restricted contributions separately when the profile exposes them. Coverage depends
   on the token, repository permissions, organization policies, and account settings. GitHub
   documents the optional classic PAT scope `read:user` for private and internal contributions. Test
@@ -49,12 +50,13 @@ website calendar parity remain unverified.
 
 ## Refresh and offline behavior
 
-Home and Activity show the last successful provider response from SQLite when available. Choose
-**Refresh** to request new data. If the provider cannot be reached, the app keeps the saved result
-and displays its refresh time with a **Cached data** label. A first request with no saved data shows
-the error without a count. The app stores a calendar or public sample and up to 30 GitHub day
-responses per connected account. Updating credentials or disconnecting removes that account's cache.
-Tokens stay in the OS credential store.
+Home and Activity show the last successful provider response from SQLite when available. Activity
+loads the selected source automatically when it has no cached response. Choose **Refresh source** to
+request new Activity data. If the provider cannot be reached, the app keeps the saved result and
+displays its refresh time with a **Cached data** label. A first request with no saved data shows the
+error without a count. The app stores a calendar or public sample and up to 30 GitHub day responses
+per connected account. Updating credentials or disconnecting removes that account's cache. Tokens
+stay in the OS credential store.
 
 ## Local activity
 

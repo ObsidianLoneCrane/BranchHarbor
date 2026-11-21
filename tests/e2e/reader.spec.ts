@@ -47,7 +47,9 @@ test('keeps merged PRs distinct and supports Gitee issue identifiers and states'
     .getByRole('link', { name: 'Keep directory requests pinned to a commit', exact: true })
     .click()
   await expect(page.getByRole('article', { name: 'Discussion detail' })).toContainText('#44')
-  await expect(page.locator('.work-state')).toHaveText('Merged')
+  await expect(
+    page.getByRole('article', { name: 'Discussion detail' }).locator('.work-state'),
+  ).toHaveText('Merged')
   await page
     .getByRole('navigation', { name: 'Repository navigation' })
     .getByRole('link', { name: 'Issues', exact: true })
@@ -59,9 +61,13 @@ test('keeps merged PRs distinct and supports Gitee issue identifiers and states'
   await page.getByRole('combobox', { name: 'State', exact: true }).selectOption('progressing')
   await page.getByRole('link', { name: 'Handle an empty repository', exact: true }).click()
   await expect(page.getByRole('article', { name: 'Discussion detail' })).toContainText('#IKS135')
-  await expect(page.locator('.work-state')).toHaveText('In progress')
   await expect(
-    page.getByRole('heading', { name: 'Handle an empty repository', exact: true }),
+    page.getByRole('article', { name: 'Discussion detail' }).locator('.work-state'),
+  ).toHaveText('In progress')
+  await expect(
+    page
+      .getByRole('article', { name: 'Discussion detail' })
+      .getByRole('heading', { name: 'Handle an empty repository', exact: true }),
   ).toBeVisible()
 })
 

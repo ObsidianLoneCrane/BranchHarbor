@@ -9,6 +9,7 @@ import {
 export function useContributionSource(
   account: () => Account | undefined,
   day: () => string | null,
+  { loadOnCacheMiss = false } = {},
 ) {
   const response = shallowRef<ContributionResponse>()
   const cached = ref(false)
@@ -50,7 +51,9 @@ export function useContributionSource(
       const date = day()
       try {
         const result = await readCachedContributionSource(selected.id, date)
-        if (result && generation === revision) apply(result, selected, date, true)
+        if (generation !== revision) return
+        if (result) apply(result, selected, date, true)
+        else if (loadOnCacheMiss) await refresh()
       } catch (cause) {
         if (generation === revision) error.value = accountError(cause).message
       }

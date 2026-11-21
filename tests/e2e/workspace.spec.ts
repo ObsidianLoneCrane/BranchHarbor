@@ -4,7 +4,7 @@ test('workspace navigation, theme persistence, and unavailable actions', async (
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('A clearer view of your work.')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Overview')
   await expect(page.getByRole('region', { name: 'GitHub contributions' })).toContainText(
     'Not connected',
   )
@@ -37,7 +37,22 @@ test('keyboard access and unknown route recovery', async ({ page }) => {
   await page.keyboard.press('Enter')
   await expect(page.locator('main')).toBeFocused()
   await page.getByRole('link', { name: 'Back to Home' }).click()
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('A clearer view of your work.')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Overview')
+})
+
+test('the language menu stays hidden until opened', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('link', { name: 'Settings', exact: true }).click()
+  const language = page.getByRole('combobox', { name: 'Language', exact: true })
+  const options = language.locator('optgroup')
+  await expect(language).toBeVisible()
+  await expect(options).toBeHidden()
+
+  await language.click()
+  await expect(options).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(options).toBeHidden()
+  await expect(language).toHaveValue('en')
 })
 
 for (const width of [375, 720, 1240]) {

@@ -1,10 +1,23 @@
 # Local Git
 
+The local repository opens to **Changes**. Use task tabs for **Files**, **History**, **Branches**,
+and **Remotes**. Files opens committed content at HEAD and loads directories as they expand. History
+draws up to 150 commits in topological order from the local Git object database, including
+last-fetched remote refs. Selecting a commit shows its message, author, date, hash, and parents.
+Open **Synchronize** in Remotes to confirm the remote and branch before pushing.
+
+Changes, Files, and History share a two-pane layout in wide windows. Drag the divider or focus it
+and use the arrow keys. In narrow windows, selecting an item opens its detail. The back button
+returns to the list, restores its scroll position, and focuses the selected item when available. The
+history list shows one reference per row, with all references available in the commit detail. Graph
+lanes keep their color along first-parent history and use distinct colors while active.
+
 Open **Repositories > Local repositories** in the desktop app. The local list is independent of
 connected provider accounts and uses the Git installation available to the desktop process.
 
-- **Import repository** accepts the full path to a working tree or a folder within it and registers
-  its root. Importing the same canonical path reopens the existing entry.
+- **Import repository** opens the operating system's folder picker. Select a working tree or a
+  folder within it to register its root. Canceling leaves the list as it was. Importing the same
+  canonical path reopens the existing entry.
 - **New repository** initializes an empty or new folder with the initial branch `main`. For new
   folders, the parent must exist.
 - **Clone repository** clones an existing remote into an empty or new folder and registers the
@@ -59,8 +72,8 @@ creation, import, diff, staging, commit, branches, push, clone, fetch, fast-forw
 divergence recovery. Use `pnpm test:e2e` after the frontend build for the desktop IPC fixture and
 browser interactions.
 
-On Windows x64 with Git for Windows 2.41.0 and VS 2026, the frontend build, 50 frontend tests, 39
-Rust tests, and 26 Edge browser tests passed. The manual credential-store test was skipped by the
-standard Rust command. The Git workflow used a local bare remote, and the browser tests used IPC
-fixtures. Live private GitHub/Gitee transports and desktop runtime checks require separate
-validation.
+On Windows x64, 51 frontend tests, 42 Rust tests, and 27 Edge browser tests passed. The standard
+Rust command skips the manual credential-store test. The Git workflow used a local bare remote, and
+the browser tests used IPC fixtures. The Debug executable opened the native folder picker, returned
+to the empty list on cancel, and imported a disposable Git working tree on confirmation. Live
+private GitHub and Gitee transports require separate validation.

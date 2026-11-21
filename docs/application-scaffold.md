@@ -10,7 +10,11 @@
   mode.
 - Read-only native version/platform/architecture information in Settings, with error recovery.
   Browser preview is labeled as a browser and never invents native runtime information.
-- Responsive sidebar, shared design tokens, reduced-motion support, and local assets/fonts only.
+- Responsive top navigation, shared design tokens, reduced-motion support, and local assets/fonts
+  only.
+- English and Simplified Chinese interface text, including account and repository feedback. The
+  language is stored per device. Native picker buttons and chrome use the operating system's
+  language.
 
 The subsequent [provider accounts increment](provider-accounts.md) adds PAT authorization, OS
 credential storage, SQLite account metadata, and paginated repository discovery. The screenshots
@@ -68,6 +72,7 @@ Open the [project environment](development-environment.md), then run:
 | `pnpm check:rust`                      | Rust format, Clippy with warnings denied, and Cargo tests              |
 | `pnpm build`                           | Type-check and generate frontend production assets                     |
 | `pnpm build:windows-preview`           | Build the Windows debug executable with embedded frontend assets       |
+| `pnpm build:windows-release`           | Build the optimized Windows executable with embedded frontend assets   |
 | `pnpm tauri build --bundles nsis --ci` | Windows executable and unsigned test installer                         |
 
 `pnpm format` writes the project's formatting. CI only checks formatting. Rust tests now exercise
@@ -97,6 +102,11 @@ data and WebView2 profile, launch through the same wrapper:
 
 Close the preview executable before rebuilding it. The `.dev-env/` directory is ignored by Git.
 
+Run `./scripts/windows/dev.ps1 pnpm build:windows-release` for
+`.dev-env/target/release/branchharbor.exe`. Open the optimized executable in a normal Windows
+session to use the release application's data and credential store. Both commands produce standalone
+executables for use with WebView2. Use the NSIS command when testing installation.
+
 ### Browser checks
 
 Build the frontend first. To reuse an existing Microsoft Edge installation on Windows:
@@ -115,7 +125,33 @@ compatibility. Failure traces are written under ignored `test-results/`.
 
 ## Interface previews
 
-The following are real browser-preview captures. Placeholder calendars carry no fetched data.
+The interface bundles Inter Variable and uses Microsoft YaHei UI or Noto Sans CJK SC for Simplified
+Chinese glyphs. Code uses Cascadia Mono with system fallbacks. The scale uses 21–24 px for page
+headings, 15 px for task headings, 13 px for body text, controls and code, and 12 px for secondary
+labels. Standard control height is at least 36 px. An 8/12/16/24 px spacing scale separates
+controls, panels, and pages. Light and dark themes use slate surfaces with teal for selection, green
+for additions, and red for removals. Diff prefixes and selection indicators remain available in both
+themes.
+
+The desktop window opens at 1080 × 700 logical pixels and can shrink to 720 × 560. Settings has an
+inset language row above the theme controls. The language menu opens when the user activates the
+control. Dropdowns use the browser's select behavior with theme colors when the webview supports
+customizable selects. Pages, scrollable panels, and dropdown menus share arrow-free scrollbars in
+WebView2. The track is transparent, and each theme uses a translucent slate-blue thumb that gains
+contrast on hover or drag. Forced-colors mode uses the system scrollbar.
+
+The top navigation uses one row at desktop widths and two rows in narrow windows. Home puts recent
+repositories first and shows today's local commits beside them when there is space. Repository rows
+share a 20 px content inset with the panel heading. Each row opens its repository, with the name
+above the path. The full path is available on hover. Provider summaries below the work panels lead
+to Activity for the full calendar or event sample.
+
+The layout applies the [Fluent 2 spacing guidance](https://fluent2.microsoft.design/layout),
+[Impeccable](https://github.com/pbakaus/impeccable) principles for reducing visual noise, and the
+[Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines) for long text,
+keyboard focus, and responsive layout.
+
+The Home screenshots use sample repositories and commits. Settings uses the browser preview.
 
 ![Home in light mode](images/home-light.png)
 
@@ -124,6 +160,11 @@ The following are real browser-preview captures. Placeholder calendars carry no 
 ![Settings in light mode](images/settings-light.png)
 
 ## Validation record
+
+The Windows Debug and Release executables both opened at 1080 × 700 in WebView2. Edge review
+included keyboard selection in the language menu, a Simplified Chinese account error at 720 × 560,
+and scrolling a commit graph with seven simultaneous lanes. The
+[local Git validation record](local-git.md#storage-and-validation) covers native folder import.
 
 Foundation Windows verification on 2026-11-02 included frontend formatting/lint/types, 24
 unit/component and policy tests, 5 Edge browser tests, frontend production build, Rust checks,

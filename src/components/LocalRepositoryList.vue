@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../lib/locale'
 import { FolderGit2 } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -9,19 +10,20 @@ import {
   listLocal,
   localGitError,
   localRepositoryName,
+  pickRepositoryFolder,
   type LocalRepository,
 } from '../lib/localGit'
 
 const router = useRouter()
 const available = hasLocalGit()
 const repositories = ref<LocalRepository[]>([])
-const mode = ref<'import' | 'create' | 'clone' | null>(null)
+const mode = ref<'create' | 'clone' | null>(null)
 const path = ref('')
 const url = ref('')
 const message = ref('')
 const busy = ref(false)
+const choosingFolder = ref(false)
 const actionLabels = {
-  import: 'Import repository',
   create: 'New repository',
   clone: 'Clone repository',
 }
@@ -42,20 +44,30 @@ onMounted(() => {
   if (available) void refresh()
 })
 
-async function submit() {
-  if (!mode.value || busy.value || !available) return
+async function submit(kind: 'import' | 'create' | 'clone') {
+  if (busy.value || !available) return
   busy.value = true
   message.value = ''
   try {
+    let destination = path.value
+    if (kind === 'import') {
+      mode.value = null
+      choosingFolder.value = true
+      const selected = await pickRepositoryFolder(t('Choose a Git repository folder'))
+      choosingFolder.value = false
+      if (selected === null) return
+      destination = selected
+    }
     const request =
-      mode.value === 'clone'
-        ? { kind: 'clone' as const, path: path.value, url: url.value.trim() }
-        : { kind: mode.value, path: path.value }
+      kind === 'clone'
+        ? { kind, path: destination, url: url.value.trim() }
+        : { kind, path: destination }
     const added = await addLocal(request)
     await router.push({ name: 'local-repository', params: { id: added.id } })
   } catch (error) {
     message.value = localGitError(error)
   } finally {
+    choosingFolder.value = false
     busy.value = false
   }
 }
@@ -65,9 +77,16 @@ async function submit() {
   <section class="panel local-panel" aria-labelledby="local-repositories-title">
     <div class="local-toolbar">
       <h2 id="local-repositories-title">
-        <FolderGit2 :size="19" aria-hidden="true" />Local repositories
+        <FolderGit2 :size="19" aria-hidden="true" />{{ t('Local repositories') }}
       </h2>
       <div class="local-actions">
+        <button
+          class="button button-secondary"
+          :disabled="!available || busy"
+          @click="submit('import')"
+        >
+          {{ t('Import repository') }}
+        </button>
         <button
           v-for="(label, option) in actionLabels"
           :key="option"
@@ -76,42 +95,44 @@ async function submit() {
           :aria-expanded="mode === option"
           @click="mode = mode === option ? null : option"
         >
-          {{ label }}
+          {{ t(label) }}
         </button>
       </div>
     </div>
-    <p v-if="!available">Open BranchHarbor on your desktop to work with local repositories.</p>
-    <form v-if="mode" class="local-form" @submit.prevent="submit">
+    <p v-if="!available">
+      {{ t('Open BranchHarbor on your desktop to work with local repositories.') }}
+    </p>
+    <form v-if="mode" class="local-form" @submit.prevent="submit(mode)">
       <label class="local-field">
-        {{ mode === 'import' ? 'Repository folder path' : 'Destination folder path' }}
+        {{ t('Destination folder path') }}
         <input v-model="path" class="form-control" required :disabled="busy" />
       </label>
       <label v-if="mode === 'clone'" class="local-field">
-        Remote URL
+        {{ t('Remote URL') }}
         <input v-model="url" class="form-control" required :disabled="busy" autocomplete="off" />
       </label>
-      <p>
-        {{
-          mode === 'import'
-            ? 'Enter the full path to an existing working tree.'
-            : 'Enter the full path to a new or empty folder.'
-        }}
-      </p>
+      <p>{{ t('Enter the full path to a new or empty folder.') }}</p>
       <div class="local-actions">
-        <button class="button button-primary" :disabled="busy" type="submit">
-          {{ mode === 'import' ? 'Import' : mode === 'create' ? 'Create' : 'Clone' }}
+        <button
+          class="button button-primary"
+          :disabled="busy || !path.trim() || (mode === 'clone' && !url.trim())"
+          type="submit"
+        >
+          {{ t(mode === 'create' ? 'Create' : 'Clone') }}
         </button>
         <button class="button button-secondary" :disabled="busy" type="button" @click="mode = null">
-          Cancel
+          {{ t('Cancel') }}
         </button>
       </div>
     </form>
-    <p v-if="busy" role="status">
-      {{ mode === 'clone' ? 'Cloning repository…' : 'Working with local repositories…' }}
+    <p v-if="busy && !choosingFolder" role="status">
+      {{ t(mode === 'clone' ? 'Cloning repository…' : 'Working with local repositories…') }}
     </p>
     <div v-if="message" class="local-actions">
-      <p role="alert">{{ message }}</p>
-      <button v-if="!mode" class="button button-secondary" @click="refresh">Retry</button>
+      <p role="alert">{{ t(message) }}</p>
+      <button v-if="!mode" class="button button-secondary" @click="refresh">
+        {{ t('Retry') }}
+      </button>
     </div>
     <ul v-if="repositories.length" class="local-list">
       <li v-for="repository in repositories" :key="repository.id">
@@ -124,6 +145,6 @@ async function submit() {
         </RouterLink>
       </li>
     </ul>
-    <p v-else-if="available && !busy && !message && !mode">No local repositories yet.</p>
+    <p v-else-if="available && !busy && !message && !mode">{{ t('No local repositories yet.') }}</p>
   </section>
 </template>

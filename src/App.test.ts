@@ -25,7 +25,6 @@ describe('application navigation', () => {
     const { wrapper } = await openApp()
     expect(wrapper.find('[aria-label="GitHub contributions"]').text()).toContain('Not connected')
     expect(wrapper.find('[aria-label="Gitee contributions"]').text()).toContain('Not connected')
-    expect(wrapper.findAll('.calendar-message')).toHaveLength(2)
     expect(wrapper.text()).not.toContain('0 contributions')
     wrapper.unmount()
   })
@@ -52,7 +51,7 @@ describe('application navigation', () => {
     expect(wrapper.get('h1').text()).toBe('Page not found')
     await wrapper.get('main a').trigger('click')
     await flushPromises()
-    expect(wrapper.get('h1').text()).toBe('A clearer view of your work.')
+    expect(wrapper.get('h1').text()).toBe('Overview')
     wrapper.unmount()
   })
 

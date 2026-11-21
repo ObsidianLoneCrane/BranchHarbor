@@ -2,9 +2,9 @@
 
 ## Language and documentation
 
-- All project-authored content must be English: documentation, comments, UI strings, tests,
-  generated project text, commit messages, and PR titles/bodies. Do not add Chinese prose. Preserve
-  external and user-controlled data as data.
+- Keep documentation, comments, tests, generated project text, commit messages, and PR text in
+  English. Use English for source UI strings and place Simplified Chinese UI translations in
+  `src/locales/zh-CN.json`. Preserve external and user-controlled data as supplied.
 - Read README.md, CONTRIBUTING.md, and relevant docs before implementation.
 - Update affected documentation in the same change as code. Keep requirements, architecture,
   commands, release instructions, and roadmap status synchronized.

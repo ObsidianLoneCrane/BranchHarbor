@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { Activity, ArrowUpRight, FolderGit2, House, Moon, Settings2, Sun } from '@lucide/vue'
+import { Activity, FolderGit2, House, Moon, Settings2, Sun } from '@lucide/vue'
 import { nextTick, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppearance } from './composables/appearance'
-import { version } from '../package.json'
 import { useAccounts } from './composables/accounts'
+import { language, setLanguage, t } from './lib/locale'
 
 const route = useRoute()
 const isSelected = (to: string) =>
   route.path === to || (to === '/repositories' && route.path.startsWith('/repositories/'))
 onMounted(() => {
+  setLanguage(language.value)
   void useAccounts().ensureLoaded()
 })
 const brandIcon = '/brand.svg'
@@ -21,9 +22,15 @@ const navigation = [
   { to: '/settings', label: 'Settings', icon: Settings2 },
 ]
 watch(
-  () => route.fullPath,
+  [() => route.fullPath, language],
+  () => {
+    document.title = `${t(String(route.meta.title ?? 'Workspace'))} · BranchHarbor`
+  },
+  { immediate: true },
+)
+watch(
+  () => route.path,
   async () => {
-    document.title = `${String(route.meta.title ?? 'Workspace')} · BranchHarbor`
     await nextTick()
     document.getElementById('page-title')?.focus({ preventScroll: true })
   },
@@ -32,70 +39,58 @@ watch(
 </script>
 
 <template>
-  <a href="#main-content" class="skip-link">Skip to content</a>
-  <div class="application-shell">
-    <aside class="sidebar">
-      <RouterLink to="/" class="brand" aria-label="BranchHarbor home"
-        ><img :src="brandIcon" alt="" width="34" height="34" /><span
-          >BranchHarbor<span class="brand-caption">Your code. A little calmer.</span></span
-        ></RouterLink
-      >
-      <div class="navigation-label">WORKSPACE</div>
-      <nav aria-label="Main navigation">
-        <RouterLink
-          v-for="item in navigation"
-          :key="item.to"
-          :to="item.to"
-          class="nav-link"
-          :class="{ selected: isSelected(item.to) }"
-          :aria-current="isSelected(item.to) ? 'page' : undefined"
-          :aria-label="item.label"
+  <a href="#main-content" class="skip-link">{{ t('Skip to content') }}</a>
+  <div class="app-frame">
+    <header class="app-header">
+      <div class="app-bar">
+        <RouterLink to="/" class="brand" :aria-label="t('BranchHarbor home')"
+          ><img :src="brandIcon" alt="" width="30" height="30" /><span
+            >BranchHarbor</span
+          ></RouterLink
         >
-          <component :is="item.icon" :size="19" :stroke-width="1.7" aria-hidden="true" /><span>{{
-            item.label
-          }}</span
-          ><span v-if="isSelected(item.to)" class="nav-current-dot" aria-hidden="true" />
-        </RouterLink>
-      </nav>
-      <div class="sidebar-bottom">
-        <div class="sidebar-note">
-          <span class="small-symbol" aria-hidden="true">B</span>
-          <div><strong>Personal workspace</strong><span>Local-first. Open source.</span></div>
-        </div>
-        <div class="version-line">
-          <span>v{{ version }}</span
-          ><span><span class="status-dot accent-dot" />Early development</span>
-        </div>
-      </div>
-    </aside>
-    <div class="workspace">
-      <header class="topbar">
-        <div class="breadcrumb">
-          <span>Workspace</span><span class="breadcrumb-separator" aria-hidden="true">/</span
-          ><strong>{{ route.meta.title }}</strong>
-        </div>
+        <nav class="app-navigation" :aria-label="t('Main navigation')">
+          <RouterLink
+            v-for="item in navigation"
+            :key="item.to"
+            :to="item.to"
+            class="nav-link"
+            :class="{ selected: isSelected(item.to) }"
+            :aria-current="isSelected(item.to) ? 'page' : undefined"
+            :aria-label="t(item.label)"
+          >
+            <component :is="item.icon" :size="16" :stroke-width="1.7" aria-hidden="true" /><span>{{
+              t(item.label)
+            }}</span>
+          </RouterLink>
+        </nav>
         <div class="topbar-actions">
-          <span class="preview-badge">Development preview</span
-          ><button
+          <button
+            class="button button-secondary"
+            type="button"
+            :aria-label="t('Switch language')"
+            @click="setLanguage(language === 'en' ? 'zh-CN' : 'en')"
+          >
+            {{ language === 'en' ? 'EN' : 'ZH' }}
+          </button>
+          <button
             class="icon-button"
-            :aria-label="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+            :aria-label="t(isDark ? 'Switch to light theme' : 'Switch to dark theme')"
             @click="setAppearance(isDark ? 'light' : 'dark')"
           >
             <Sun v-if="isDark" :size="18" /><Moon v-else :size="18" />
           </button>
         </div>
-      </header>
-      <main id="main-content" class="page-content" tabindex="-1">
-        <RouterView v-slot="{ Component }"
-          ><KeepAlive include="RepositoriesView"><component :is="Component" /></KeepAlive
-        ></RouterView>
-      </main>
-      <footer class="workspace-footer">
-        <span>A quieter place to keep your work moving.</span
-        ><RouterLink to="/settings"
-          >Workspace settings<ArrowUpRight :size="13" aria-hidden="true"
-        /></RouterLink>
-      </footer>
-    </div>
+      </div>
+    </header>
+    <main id="main-content" class="page-content" tabindex="-1">
+      <RouterView v-slot="{ Component, route: current }"
+        ><KeepAlive include="RepositoriesView,RepositoryExplorerView" :max="8"
+          ><component
+            :is="Component"
+            :key="
+              current.name === 'repository-explorer' ? current.path : String(current.name)
+            " /></KeepAlive
+      ></RouterView>
+    </main>
   </div>
 </template>

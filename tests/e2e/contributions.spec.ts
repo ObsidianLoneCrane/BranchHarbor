@@ -4,6 +4,7 @@ import { installExplorerFixture } from './explorer-fixture'
 test('keeps GitHub calendar and daily counts separate from Gitee public events', async ({
   page,
 }) => {
+  await page.clock.setFixedTime(new Date('2024-03-02T00:30:00Z'))
   await installExplorerFixture(page)
   await page.addInitScript(() => {
     const install = () => {
@@ -66,11 +67,13 @@ test('keeps GitHub calendar and daily counts separate from Gitee public events',
             ],
           })
         }
-        if (day === '2024-02-29') {
+        if (typeof day === 'string') {
           return respond({
             source: 'githubDay',
             ...range,
-            totalCommitContributions: 2,
+            startedAt: day + 'T00:00:00Z',
+            endedAt: day + 'T23:59:59Z',
+            totalCommitContributions: day === '2024-02-29' ? 2 : 1,
             totalPullRequestContributions: 1,
             totalIssueContributions: 0,
           })
@@ -101,32 +104,41 @@ test('keeps GitHub calendar and daily counts separate from Gitee public events',
   })
   await page.goto('/')
   await page.getByRole('button', { name: 'Refresh GitHub' }).click()
+  await expect(page.getByText('4 contributions', { exact: true })).toBeVisible()
+  await page
+    .getByRole('region', { name: 'GitHub contributions' })
+    .getByRole('link', { name: 'Open activity' })
+    .click()
+  const date = page.getByLabel('UTC date')
+  await expect(date).toHaveValue('2024-03-02')
+  await expect(date).toHaveAttribute('max', '2024-03-02')
+  await expect(page.getByRole('button', { name: 'Today', exact: true })).toHaveCount(0)
+  await expect(page.getByText('Commits: 1', { exact: true })).toBeVisible()
+  await date.fill('2024-03-03')
+  await expect(date).toHaveValue('2024-03-02')
+  await page.getByRole('button', { name: 'Show contribution calendar' }).click()
   await page.getByLabel('Calendar day').selectOption('2024-02-28')
   await expect(page.getByText('2024-02-28 · 0 contributions')).toBeVisible()
   await page.getByLabel('Calendar day').selectOption('2024-02-29')
   await page.getByRole('button', { name: 'View activity' }).click()
-  await expect(page.getByLabel('UTC day (optional)')).toHaveValue('2024-02-29')
+  await expect(date).toHaveValue('2024-02-29')
+  await expect(page.getByText('Commits: 2', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Local Git activity', exact: true }).click()
   await expect(page.getByText('A local commit')).toBeVisible()
-  const load = page.getByRole('button', { name: 'Load source' })
-  await page.getByLabel('UTC day (optional)').fill('')
-  await expect(page.getByText('4 contributions', { exact: true })).toBeVisible()
-  await page.getByLabel('UTC day (optional)').fill('2024-02-29')
-  await expect(page.getByText('4 contributions', { exact: true })).toHaveCount(0)
-  await load.click()
-  await expect(page.getByText('Commits: 2')).toBeVisible()
+  await page.getByRole('button', { name: 'Platform activity', exact: true }).click()
+  await expect(page.getByText('Commits: 2', { exact: true })).toBeVisible()
   await expect(page.getByText('Pull requests opened: 1')).toBeVisible()
   await page.getByRole('combobox', { name: 'Account' }).selectOption('gitee:gitee.com:10')
-  await load.click()
   await expect(page.getByText('fixture/project')).toBeVisible()
   await expect(page.getByText('Coverage dates are unknown.')).toBeVisible()
   await expect(page.getByText('Commits: 2')).toHaveCount(0)
-  await page.getByLabel('UTC day (optional)').fill('2024-03-01')
+  await date.fill('2024-03-01')
   await expect(page.getByText('No events in the public sample match this UTC day.')).toBeVisible()
   await page.evaluate(() => localStorage.setItem('fixture-offline', 'true'))
   await page.goto('/#/activity?account=github:github.com:1&day=2024-02-29')
   await page.reload()
   await expect(page.getByRole('combobox', { name: 'Account' })).toHaveValue('github:github.com:1')
-  await expect(page.getByLabel('UTC day (optional)')).toHaveValue('2024-02-29')
+  await expect(date).toHaveValue('2024-02-29')
   await expect(page.getByText('Cached data · Last refreshed')).toBeVisible()
   await page.getByRole('button', { name: 'Refresh source' }).click()
   await expect(page.getByText('The provider could not be reached.')).toBeVisible()
