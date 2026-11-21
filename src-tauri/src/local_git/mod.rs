@@ -1,4 +1,5 @@
 pub(super) mod activity;
+pub(super) mod inspection;
 mod process;
 #[cfg(test)]
 mod tests;

@@ -23,6 +23,22 @@ test('opens repository files, navigates directories, and restores repository lis
     'pinned main commit',
   )
   await page.getByRole('button', { name: 'src Directory', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'src Directory', exact: true })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  )
+  await page.getByRole('link', { name: 'Issues', exact: true }).click()
+  await page.getByRole('link', { name: 'Files', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'src Directory', exact: true })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  )
+  await page.getByRole('button', { name: 'Switch language' }).click()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN')
+  await expect(
+    page.getByRole('button', { name: 'main.ts \u6587\u4ef6', exact: true }),
+  ).toBeVisible()
+  await page.getByRole('button', { name: '\u5207\u6362\u8bed\u8a00' }).click()
   await page.getByRole('button', { name: 'main.ts File', exact: true }).click()
   await expect(page.getByRole('region', { name: 'File source' })).toContainText(
     'Hello, BranchHarbor',

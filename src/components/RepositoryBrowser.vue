@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { language, t } from '../lib/locale'
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import {
   ChevronLeft,
@@ -32,7 +33,7 @@ const error = ref<AccountError | null>(null)
 const page = ref(1)
 const hasNext = ref(false)
 const loaded = ref(false)
-const refreshed = ref('')
+const refreshed = ref<Date>()
 const clock = ref(Date.now())
 const cooldowns = reactive<Record<string, number>>({})
 const remaining = computed(() =>
@@ -68,7 +69,7 @@ async function load(nextPage = 1) {
     items.value = []
     loaded.value = false
     loading.value = false
-    refreshed.value = ''
+    refreshed.value = undefined
     error.value = accountError({ code: 'rateLimited', retryAfterSeconds: remaining.value })
     return
   }
@@ -76,7 +77,7 @@ async function load(nextPage = 1) {
   error.value = null
   items.value = []
   loaded.value = false
-  refreshed.value = ''
+  refreshed.value = undefined
   try {
     if (current.value?.credentialStatus !== 'saved')
       throw accountError({
@@ -97,7 +98,7 @@ async function load(nextPage = 1) {
     page.value = response.page
     hasNext.value = response.hasNext
     loaded.value = true
-    refreshed.value = new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })
+    refreshed.value = new Date()
   } catch (cause) {
     if (ticket !== requestId) return
     error.value = accountError(cause)
@@ -132,81 +133,99 @@ onUnmounted(() => {
   clearInterval(timer)
 })
 function updated(value: string | null) {
-  if (!value) return 'Update time unavailable'
+  if (!value) return t('Update time unavailable')
   const date = new Date(value)
   return Number.isNaN(date.getTime())
-    ? 'Update time unavailable'
-    : 'Updated ' +
-        date.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
+    ? t('Update time unavailable')
+    : t('Updated {time}', {
+        time: date.toLocaleDateString(language.value, { dateStyle: 'medium' }),
+      })
 }
 </script>
 
 <template>
   <section
     class="panel repository-panel"
-    aria-label="Repository workspace"
+    :aria-label="t('Repository workspace')"
     :aria-busy="loading || accountsLoading"
   >
     <div class="panel-toolbar">
-      <span><FolderGit2 :size="17" aria-hidden="true" />Your repositories</span
+      <span><FolderGit2 :size="17" aria-hidden="true" />{{ t('Your repositories') }}</span
       ><button
         v-if="accounts.length"
         class="button button-secondary"
         :disabled="loading || remaining > 0 || !selected"
         @click="load()"
       >
-        <RefreshCw :size="13" aria-hidden="true" />Refresh</button
-      ><span v-else class="subtle-badge">Not connected</span>
+        <RefreshCw :size="13" aria-hidden="true" />{{ t('Refresh') }}</button
+      ><span v-else class="subtle-badge">{{ t('Not connected') }}</span>
     </div>
     <div v-if="accountsError" class="account-alert" role="alert">
-      <p>{{ accountsError.message }}</p>
-      <button class="text-button" @click="store.refresh">Retry loading accounts</button>
+      <p>{{ t(accountsError.message) }}</p>
+      <button class="text-button" @click="store.refresh">{{ t('Retry loading accounts') }}</button>
     </div>
     <p v-if="accountsLoading && !accounts.length" class="repository-status" role="status">
-      Loading saved accounts...
+      {{ t('Loading saved accounts...') }}
     </p>
     <template v-else-if="accounts.length">
       <div class="repository-filters">
         <label
-          >Platform<select v-model="platform" class="form-control">
-            <option value="all">All platforms</option>
-            <option value="github">GitHub</option>
-            <option value="gitee">Gitee</option>
+          >{{ t('Platform')
+          }}<select v-model="platform" class="form-control">
+            <optgroup class="select-options" label="">
+              <option value="all">{{ t('All platforms') }}</option>
+              <option value="github">GitHub</option>
+              <option value="gitee">Gitee</option>
+            </optgroup>
           </select></label
         ><label class="account-filter"
-          >Account<select v-model="selected" class="form-control">
-            <option v-if="!available.length" value="">No connected account</option>
-            <option v-for="account in available" :key="account.id" :value="account.id">
-              {{ providerName(account.provider) }} / @{{ account.login }}
-            </option>
+          >{{ t('Account')
+          }}<select v-model="selected" class="form-control">
+            <optgroup class="select-options" label="">
+              <option v-if="!available.length" value="">{{ t('No connected account') }}</option>
+              <option v-for="account in available" :key="account.id" :value="account.id">
+                {{ providerName(account.provider) }} / @{{ account.login }}
+              </option>
+            </optgroup>
           </select></label
         ><label
-          >Ownership<select v-model="ownership" class="form-control">
-            <option value="all">All accessible</option>
-            <option value="owned">Owned by me</option>
+          >{{ t('Ownership')
+          }}<select v-model="ownership" class="form-control">
+            <optgroup class="select-options" label="">
+              <option value="all">{{ t('All accessible') }}</option>
+              <option value="owned">{{ t('Owned by me') }}</option>
+            </optgroup>
           </select></label
         ><label
-          >Visibility<select v-model="visibility" class="form-control">
-            <option value="all">All visibility</option>
-            <option value="public">Public</option>
-            <option value="private">Private</option>
+          >{{ t('Visibility')
+          }}<select v-model="visibility" class="form-control">
+            <optgroup class="select-options" label="">
+              <option value="all">{{ t('All visibility') }}</option>
+              <option value="public">{{ t('Public') }}</option>
+              <option value="private">{{ t('Private') }}</option>
+            </optgroup>
           </select></label
         >
       </div>
       <p class="repository-scope">
-        Only repositories allowed by the selected token are shown. Private visibility depends on its
-        permissions.
+        {{
+          t(
+            'Only repositories allowed by the selected token are shown. Private visibility depends on its permissions.',
+          )
+        }}
       </p>
       <div v-if="error" class="account-alert repository-error" role="alert">
-        <p>{{ error.message }}</p>
+        <p>{{ t(error.message) }}</p>
         <div class="repository-error-actions">
-          <span v-if="remaining">Try again in {{ remaining }} seconds.</span
+          <span v-if="remaining">{{
+            t('Try again in {count} seconds.', { count: remaining })
+          }}</span
           ><button
             class="button button-secondary"
             :disabled="loading || remaining > 0"
             @click="load(page)"
           >
-            Retry</button
+            {{ t('Retry') }}</button
           ><RouterLink
             v-if="
               ['unauthorized', 'forbidden', 'credentialMissing', 'credentialUnavailable'].includes(
@@ -215,26 +234,32 @@ function updated(value: string | null) {
             "
             to="/settings"
             class="text-link"
-            >Manage account</RouterLink
+            >{{ t('Manage account') }}</RouterLink
           >
         </div>
       </div>
       <div v-else-if="loading" class="repository-status" role="status">
-        <LoaderCircle :size="18" class="loading-icon" aria-hidden="true" />Loading repositories...
+        <LoaderCircle :size="18" class="loading-icon" aria-hidden="true" />{{
+          t('Loading repositories...')
+        }}
       </div>
       <EmptyState
         v-else-if="!selected"
-        title="No account for this platform"
-        description="Connect an account in Settings or select another platform."
-        action="Manage accounts"
+        :title="t('No account for this platform')"
+        :description="t('Connect an account in Settings or select another platform.')"
+        :action="t('Manage accounts')"
         to="/settings"
       />
       <EmptyState
         v-else-if="loaded && !items.length"
-        title="No repositories to show"
-        description="No repositories were returned for this page and these filters. Check token permissions if you expected private repositories."
+        :title="t('No repositories to show')"
+        :description="
+          t(
+            'No repositories were returned for this page and these filters. Check token permissions if you expected private repositories.',
+          )
+        "
       />
-      <ul v-else class="repository-list" aria-label="Repositories">
+      <ul v-else class="repository-list" :aria-label="t('Repositories')">
         <li v-for="repo in items" :key="repo.id" class="repository-row">
           <div class="repository-name-row">
             <FolderGit2 :size="19" aria-hidden="true" />
@@ -249,9 +274,9 @@ function updated(value: string | null) {
             </h2>
             <span class="visibility-badge"
               ><LockKeyhole v-if="repo.visibility === 'private'" :size="10" aria-hidden="true" />{{
-                repo.visibility
+                t(repo.visibility)
               }}</span
-            ><span v-if="repo.archived" class="subtle-badge">Archived</span>
+            ><span v-if="repo.archived" class="subtle-badge">{{ t('Archived') }}</span>
           </div>
           <p v-if="repo.description" class="repository-description">{{ repo.description }}</p>
           <div class="repository-metadata">
@@ -259,43 +284,50 @@ function updated(value: string | null) {
               ><span class="status-dot accent-dot" />{{ repo.language }}</span
             ><span
               ><GitBranch :size="12" aria-hidden="true" />{{
-                repo.defaultBranch || 'No default branch'
+                repo.defaultBranch || t('No default branch')
               }}</span
-            ><span>{{ repo.owned ? 'Owned by you' : 'Accessible to you' }}</span
+            ><span>{{ t(repo.owned ? 'Owned by you' : 'Accessible to you') }}</span
             ><span>{{ updated(repo.updatedAt) }}</span>
           </div>
         </li>
       </ul>
       <div v-if="loaded && selected" class="repository-pagination">
-        <span
-          >Page {{ page }}<span v-if="refreshed"> · Refreshed {{ refreshed }}</span></span
-        >
+        <span>
+          {{ t('Page {page}', { page }) }}
+          <span v-if="refreshed">
+            ·
+            {{
+              t('Refreshed {time}', {
+                time: refreshed.toLocaleTimeString(language, { timeStyle: 'short' }),
+              })
+            }}
+          </span>
+        </span>
         <div>
           <button
             class="button button-secondary"
             :disabled="page <= 1 || loading || remaining > 0"
             @click="load(page - 1)"
           >
-            <ChevronLeft :size="14" aria-hidden="true" />Previous</button
+            <ChevronLeft :size="14" aria-hidden="true" />{{ t('Previous') }}</button
           ><button
             class="button button-secondary"
             :disabled="!hasNext || loading || remaining > 0"
             @click="load(page + 1)"
           >
-            Next<ChevronRight :size="14" aria-hidden="true" />
+            {{ t('Next') }}<ChevronRight :size="14" aria-hidden="true" />
           </button>
         </div>
       </div>
     </template>
     <EmptyState
       v-else-if="!accountsError && !accountsLoading"
-      title="Your projects start here"
-      description="Connect a GitHub or Gitee account to see the repositories available to you."
-      action="Explore account settings"
+      :title="t('No remote repositories connected')"
+      :description="
+        t('Connect a GitHub or Gitee account to see the repositories available to you.')
+      "
+      :action="t('Explore account settings')"
       to="/settings"
-      ><div class="availability-note">
-        Local import and repository creation are planned for a later stage.
-      </div></EmptyState
-    >
+    />
   </section>
 </template>

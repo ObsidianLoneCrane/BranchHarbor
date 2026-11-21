@@ -53,6 +53,6 @@ export function createAppRouter(history: RouterHistory = createWebHashHistory())
         meta: { title: 'Page not found' },
       },
     ],
-    scrollBehavior: () => ({ top: 0 }),
+    scrollBehavior: (to, from, saved) => saved ?? (to.path === from.path ? false : { top: 0 }),
   })
 }

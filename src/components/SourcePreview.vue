@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../lib/locale'
 import { computed, onUnmounted, ref, watch } from 'vue'
 const props = defineProps<{ path: string; text: string }>()
 const highlighted = ref<string | null>(null)
@@ -50,8 +51,8 @@ onUnmounted(stop)
     <span>{{ language }}</span
     ><span>{{ count }} {{ count === 1 ? 'line' : 'lines' }} · UTF-8</span>
   </div>
-  <p v-if="!text" class="preview-placeholder">This file is empty.</p>
-  <div v-else class="source-preview" role="region" aria-label="File source" tabindex="0">
+  <p v-if="!text" class="preview-placeholder">{{ t('This file is empty.') }}</p>
+  <div v-else class="source-preview" role="region" :aria-label="t('File source')" tabindex="0">
     <div class="source-lines" aria-hidden="true">
       <span v-for="line in count" :key="line">{{ line }}</span>
     </div>

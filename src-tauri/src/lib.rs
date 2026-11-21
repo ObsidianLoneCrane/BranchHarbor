@@ -72,7 +72,10 @@ pub fn run() {
             local_git::read_local_repository,
             local_git::read_local_diff,
             local_git::change_local_repository,
-            local_git::activity::read_local_activity
+            local_git::activity::read_local_activity,
+            local_git::inspection::read_local_history,
+            local_git::inspection::read_local_tree,
+            local_git::inspection::read_local_blob
         ])
         .run(tauri::generate_context!())
         .expect("Failed to start BranchHarbor");

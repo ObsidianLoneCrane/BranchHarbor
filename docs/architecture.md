@@ -66,6 +66,12 @@ uses the same registered-root checks and Git CLI runner to read bounded UTC-day 
 Vue dashboard displays distinct provider and local datasets and shares a contribution refresh
 composable with Activity.
 
+## Repository workspace
+
+The repository views use task links and a bounded in-memory view cache for remote file browsing.
+Local file reads use Git tree and blob objects under a registered working tree. The history graph
+uses Git's topological order and parent object IDs. The UI language preference stays on the device.
+
 ## Remaining technology direction
 
 The [repository explorer](repository-explorer.md) resolves branches to commit/tree SHAs and browses

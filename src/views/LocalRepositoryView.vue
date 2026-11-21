@@ -17,6 +17,10 @@ import {
   type LocalSnapshot,
 } from '../lib/localGit'
 import '../localGit.css'
+import LocalFiles from '../components/LocalFiles.vue'
+import CommitHistory from '../components/CommitHistory.vue'
+import WorkspaceSplit from '../components/WorkspaceSplit.vue'
+import { t } from '../lib/locale'
 
 const route = useRoute()
 const router = useRouter()
@@ -28,6 +32,13 @@ const alert = ref('')
 const progress = ref('')
 const notice = ref('')
 const diff = ref<{ path: string; staged: boolean; text: string; truncated: boolean }>()
+const diffOpen = ref(false)
+const diffLines = computed(() => {
+  const value = diff.value?.text ?? ''
+  if (value.length > 100_000) return []
+  const lines = value.match(/[^\r\n]*(?:\r\n|\r|\n)|[^\r\n]+$/g) ?? []
+  return lines.length > 1500 ? [] : lines
+})
 const message = ref('')
 const branchName = ref('')
 const branchStart = ref('')
@@ -39,6 +50,31 @@ const remoteUrl = ref('')
 const selectedRemote = ref('')
 const remoteBranch = ref('')
 const track = ref(false)
+const tasks = {
+  changes: 'Changes',
+  files: 'Files',
+  history: 'History',
+  branches: 'Branches',
+  remotes: 'Remotes',
+} as const
+const task = computed(() =>
+  typeof route.query.task === 'string' && Object.hasOwn(tasks, route.query.task)
+    ? route.query.task
+    : 'changes',
+)
+const historyOpened = ref(false)
+const historyRevision = ref(0)
+const syncOpen = ref(false)
+const commitOpen = ref(false)
+const workingChanges = computed(() => snapshot.value?.changes.filter(hasWorkingChange) ?? [])
+const stagedChanges = computed(() => snapshot.value?.changes.filter(canUnstage) ?? [])
+watch(
+  task,
+  (value) => {
+    if (value === 'history') historyOpened.value = true
+  },
+  { immediate: true },
+)
 
 const remote = computed(() =>
   snapshot.value?.remotes.find((item) => item.name === selectedRemote.value),
@@ -85,6 +121,7 @@ async function refresh(target = id.value) {
 }
 
 async function load(target: number) {
+  diffOpen.value = false
   repository.value = undefined
   snapshot.value = undefined
   diff.value = undefined
@@ -92,6 +129,9 @@ async function load(target: number) {
   notice.value = ''
   removing.value = false
   deleting.value = ''
+  commitOpen.value = false
+  syncOpen.value = false
+  historyRevision.value++
   if (!available) return
   progress.value = 'Reading local repository…'
   try {
@@ -111,6 +151,7 @@ watch(id, load, { immediate: true })
 
 async function showDiff(path: string, isStaged: boolean) {
   if (progress.value) return
+  diffOpen.value = true
   const target = id.value
   alert.value = ''
   diff.value = undefined
@@ -151,6 +192,7 @@ async function perform(operation: LocalOperation, pending: string, success: stri
   } finally {
     if (id.value === target) progress.value = ''
   }
+  if (id.value === target && succeeded) historyRevision.value++
   return succeeded && id.value === target
 }
 
@@ -240,156 +282,245 @@ async function forget() {
 </script>
 
 <template>
-  <RouterLink class="text-link" :to="{ name: 'repositories' }">All repositories</RouterLink>
-  <div class="page-heading">
+  <nav class="workspace-path" :aria-label="t('Repository path')">
+    <RouterLink class="text-link" :to="{ name: 'repositories', query: { source: 'local' } }">{{
+      t('All repositories')
+    }}</RouterLink>
+    <span aria-hidden="true">/</span>
+    <span>{{ t('Local repository') }}</span>
+  </nav>
+  <div class="page-heading repository-heading">
     <div>
       <h1 id="page-title" tabindex="-1">
-        {{ repository ? localRepositoryName(repository.path) : 'Local repository' }}
+        {{ repository ? localRepositoryName(repository.path) : t('Local repository') }}
       </h1>
       <p v-if="repository" class="page-description">{{ displayLocalPath(repository.path) }}</p>
+      <p v-if="snapshot" class="workspace-branch">
+        <code>{{ snapshot.branch ?? t('Detached HEAD') }}</code>
+      </p>
     </div>
     <div v-if="available" class="local-actions">
       <button class="button button-secondary" :disabled="!!progress" @click="load(id)">
-        Refresh
+        {{ t('Refresh') }}
       </button>
-      <button
-        v-if="repository"
-        class="button button-secondary"
-        :disabled="!!progress"
-        @click="removing = !removing"
-      >
-        Remove from list
-      </button>
+      <details v-if="repository" class="repository-options">
+        <summary class="button button-secondary">{{ t('Repository options') }}</summary>
+        <div class="panel">
+          <button
+            class="button button-secondary"
+            :disabled="!!progress"
+            @click="removing = !removing"
+          >
+            {{ t('Remove from list') }}
+          </button>
+        </div>
+      </details>
     </div>
   </div>
-  <p v-if="!available">Open BranchHarbor on your desktop to work with local repositories.</p>
+  <p v-if="!available">
+    {{ t('Open BranchHarbor on your desktop to work with local repositories.') }}
+  </p>
   <div v-if="progress || alert || notice || removing" class="panel local-panel">
-    <p v-if="progress" role="status">{{ progress }}</p>
-    <p v-if="alert" role="alert">{{ alert }}</p>
-    <p v-if="notice" role="status">{{ notice }}</p>
+    <p v-if="progress" role="status">{{ t(progress) }}</p>
+    <p v-if="alert" role="alert">{{ t(alert) }}</p>
+    <p v-if="notice" role="status">{{ t(notice) }}</p>
     <div v-if="removing" class="local-actions">
-      <p>Remove this registration? Your files and Git history stay in the folder.</p>
+      <p>{{ t('Remove this registration? Your files and Git history stay in the folder.') }}</p>
       <button class="button button-danger" :disabled="!!progress" @click="forget">
-        Remove registration
+        {{ t('Remove registration') }}
       </button>
-      <button class="button button-secondary" @click="removing = false">Cancel</button>
+      <button class="button button-secondary" @click="removing = false">{{ t('Cancel') }}</button>
     </div>
   </div>
   <template v-if="snapshot">
-    <section class="panel local-panel" aria-labelledby="changes-title">
-      <h2 id="changes-title">Changes</h2>
+    <nav
+      class="repository-tabs task-tabs repository-task-bar"
+      :aria-label="t('Repository navigation')"
+    >
+      <RouterLink
+        v-for="(label, key) in tasks"
+        :key="key"
+        :to="{
+          name: 'local-repository',
+          params: { id },
+          query: key === 'changes' ? {} : { task: key },
+        }"
+        :class="{ active: task === key }"
+        :aria-current="task === key ? 'page' : undefined"
+        >{{ t(label) }}</RouterLink
+      >
+    </nav>
+    <LocalFiles
+      v-show="task === 'files'"
+      :id="id"
+      :head="snapshot.head"
+      :active="task === 'files'"
+    />
+    <CommitHistory
+      v-if="historyOpened"
+      v-show="task === 'history'"
+      :id="id"
+      :revision="historyRevision"
+    />
+    <section v-show="task === 'changes'" class="panel task-panel" aria-labelledby="changes-title">
+      <h2 id="changes-title" class="sr-only">{{ t('Changes') }}</h2>
+      <WorkspaceSplit v-model="diffOpen" heading="Back to changes">
+        <template #list
+          ><div class="change-sidebar">
+            <div
+              v-for="group in [
+                { title: 'Unstaged', items: workingChanges, staged: false },
+                { title: 'Staged', items: stagedChanges, staged: true },
+              ]"
+              :key="group.title"
+              class="change-group"
+            >
+              <h3>
+                {{ t(group.title) }} <span>{{ group.items.length }}</span>
+              </h3>
+              <ul class="directory-list">
+                <li v-for="item in group.items" :key="item.path" class="change-row">
+                  <button
+                    type="button"
+                    :disabled="!!progress"
+                    :aria-label="`${t(group.staged ? 'View staged diff' : 'View diff')} · ${item.path}`"
+                    :aria-pressed="diff?.path === item.path && diff?.staged === group.staged"
+                    @click="showDiff(item.path, group.staged)"
+                  >
+                    <span class="change-path" :title="item.path">
+                      <span class="entry-name">{{ item.path.split('/').at(-1) }}</span>
+                      <span v-if="item.path.includes('/')" class="change-directory">{{
+                        item.path.slice(0, item.path.lastIndexOf('/'))
+                      }}</span> </span
+                    ><span
+                      class="change-status"
+                      :class="{
+                        'change-status-added': (group.staged ? item.index : item.worktree) === 'A',
+                        'change-status-deleted':
+                          (group.staged ? item.index : item.worktree) === 'D',
+                      }"
+                      :title="status(item)"
+                      aria-hidden="true"
+                      >{{ group.staged ? item.index : item.worktree }}</span
+                    >
+                  </button>
+                  <button
+                    type="button"
+                    class="change-action"
+                    :disabled="!!progress"
+                    @click="
+                      perform(
+                        { kind: group.staged ? 'unstage' : 'stage', path: item.path },
+                        group.staged ? 'Unstaging file…' : 'Staging file…',
+                        group.staged ? 'File unstaged.' : 'File staged.',
+                      )
+                    "
+                  >
+                    {{ t(group.staged ? 'Unstage' : 'Stage') }}
+                  </button>
+                </li>
+              </ul>
+            </div>
+            <p v-if="!snapshot.changes.length" class="task-message">
+              {{ t('Working tree is clean.') }}
+            </p>
+            <button
+              v-if="staged && !commitOpen"
+              type="button"
+              class="button button-primary"
+              :aria-expanded="commitOpen"
+              @click="commitOpen = !commitOpen"
+            >
+              {{ t('Prepare commit') }}
+            </button>
+            <form
+              v-if="staged && commitOpen"
+              class="local-form commit-form"
+              @submit.prevent="commit"
+            >
+              <p>{{ snapshot.author ?? t('Git author is not configured') }}</p>
+              <label class="local-field"
+                >{{ t('Commit message') }}
+                <textarea
+                  v-model="message"
+                  class="form-control"
+                  rows="3"
+                  maxlength="2000"
+                  required
+                  :disabled="!!progress"
+                />
+              </label>
+              <button
+                class="button button-primary"
+                :disabled="!!progress || !message.trim() || !snapshot.author"
+                type="submit"
+              >
+                {{ t('Commit staged changes') }}
+              </button>
+              <button class="button button-secondary" type="button" @click="commitOpen = false">
+                {{ t('Cancel') }}
+              </button>
+            </form>
+          </div></template
+        >
+        <template v-if="diff">
+          <div class="file-heading">
+            <strong>{{ diff.path }}</strong
+            ><span>{{ t(diff.staged ? 'Staged diff' : 'Working tree diff') }}</span>
+          </div>
+          <p v-if="diff.truncated" class="task-message">
+            {{ t('The diff exceeds the preview limit.') }}
+          </p>
+          <pre
+            v-if="diff.text"
+            class="local-diff"
+            tabindex="0"
+          ><template v-if="diffLines.length"><span v-for="(line, index) in diffLines" :key="index" class="diff-line" :class="{ 'diff-added': line.startsWith('+') && !line.startsWith('+++'), 'diff-deleted': line.startsWith('-') && !line.startsWith('---'), 'diff-hunk': line.startsWith('@@') }">{{ line }}</span></template><template v-else>{{ diff.text }}</template></pre>
+          <p v-else class="task-message">{{ t('No text diff is available.') }}</p>
+        </template>
+        <p v-else class="task-message">{{ t('Select a changed file to inspect its diff.') }}</p>
+      </WorkspaceSplit>
+    </section>
+    <section
+      v-show="task === 'branches'"
+      class="panel local-panel"
+      aria-labelledby="branches-title"
+    >
+      <h2 id="branches-title">{{ t('Branches') }}</h2>
       <dl class="local-metadata">
         <div>
-          <dt>Branch</dt>
-          <dd>{{ snapshot.branch ?? 'Detached HEAD' }}</dd>
+          <dt>{{ t('Branch') }}</dt>
+          <dd>{{ snapshot.branch ?? t('Detached HEAD') }}</dd>
         </div>
         <div>
-          <dt>Commit</dt>
-          <dd>{{ snapshot.head ?? 'No commits yet' }}</dd>
+          <dt>{{ t('Upstream') }}</dt>
+          <dd>{{ snapshot.upstream ?? t('No upstream') }}</dd>
         </div>
-        <div>
-          <dt>Commit author</dt>
-          <dd>{{ snapshot.author ?? 'Git author is not configured' }}</dd>
-        </div>
-        <div>
-          <dt>Upstream</dt>
-          <dd>{{ snapshot.upstream ?? 'No upstream' }}</dd>
-          <dd v-if="snapshot.upstream">
-            {{ snapshot.ahead }} ahead · {{ snapshot.behind }} behind as of last fetch
+        <div v-if="snapshot.upstream">
+          <dt>{{ t('As of last fetch') }}</dt>
+          <dd>
+            {{
+              t('{ahead} ahead · {behind} behind', {
+                ahead: snapshot.ahead ?? 0,
+                behind: snapshot.behind ?? 0,
+              })
+            }}
           </dd>
         </div>
       </dl>
-      <p v-if="!snapshot.changes.length">Working tree is clean.</p>
-      <ul v-else class="local-list">
-        <li v-for="item in snapshot.changes" :key="item.path" class="local-change">
-          <div>
-            <strong>{{ item.path }}</strong>
-            <p>{{ status(item) }}</p>
-          </div>
-          <div class="local-actions">
-            <button
-              v-if="hasWorkingChange(item)"
-              class="button button-secondary"
-              :disabled="!!progress"
-              @click="showDiff(item.path, false)"
-            >
-              View diff
-            </button>
-            <button
-              v-if="hasWorkingChange(item)"
-              class="button button-secondary"
-              :disabled="!!progress"
-              @click="perform({ kind: 'stage', path: item.path }, 'Staging file…', 'File staged.')"
-            >
-              Stage
-            </button>
-            <button
-              v-if="canUnstage(item)"
-              class="button button-secondary"
-              :disabled="!!progress"
-              @click="showDiff(item.path, true)"
-            >
-              View staged diff
-            </button>
-            <button
-              v-if="canUnstage(item)"
-              class="button button-secondary"
-              :disabled="!!progress"
-              @click="
-                perform({ kind: 'unstage', path: item.path }, 'Unstaging file…', 'File unstaged.')
-              "
-            >
-              Unstage
-            </button>
-          </div>
-        </li>
-      </ul>
-      <div v-if="diff" class="local-form">
-        <div class="local-toolbar">
-          <h3>{{ diff.staged ? 'Staged diff' : 'Working tree diff' }} · {{ diff.path }}</h3>
-          <button class="button button-secondary" @click="diff = undefined">Close diff</button>
-        </div>
-        <p v-if="diff.truncated">The diff exceeds the preview limit.</p>
-        <pre v-if="diff.text" class="local-diff" tabindex="0">{{ diff.text }}</pre>
-        <p v-else>No text diff is available.</p>
-      </div>
-      <form v-if="staged" class="local-form" @submit.prevent="commit">
-        <label class="local-field">
-          Commit message
-          <textarea
-            v-model="message"
-            class="form-control"
-            rows="3"
-            maxlength="2000"
-            required
-            :disabled="!!progress"
-          />
-        </label>
-        <p v-if="!snapshot.author">Configure your name and email in Git, then refresh.</p>
-        <div>
-          <button
-            class="button button-primary"
-            :disabled="!!progress || !message.trim() || !snapshot.author"
-            type="submit"
-          >
-            Commit staged changes
-          </button>
-        </div>
-      </form>
-    </section>
-    <section class="panel local-panel" aria-labelledby="branches-title">
-      <h2 id="branches-title">Branches</h2>
       <div v-if="snapshot.branches.length" class="local-form">
         <label class="local-field">
-          Local branch
+          {{ t('Local branch') }}
           <select
             v-model="selectedBranch"
             class="form-control"
             :disabled="!!progress"
             @change="deleting = ''"
           >
-            <option value="">Choose a branch</option>
-            <option v-for="branch in snapshot.branches" :key="branch">{{ branch }}</option>
+            <optgroup class="select-options" label="">
+              <option value="">{{ t('Choose a branch') }}</option>
+              <option v-for="branch in snapshot.branches" :key="branch">{{ branch }}</option>
+            </optgroup>
           </select>
         </label>
         <div class="local-actions">
@@ -404,19 +535,19 @@ async function forget() {
               )
             "
           >
-            Switch branch
+            {{ t('Switch branch') }}
           </button>
           <button
             class="button button-secondary"
             :disabled="!!progress || !selectedBranch || selectedBranch === snapshot.branch"
             @click="deleting = selectedBranch"
           >
-            Delete branch
+            {{ t('Delete branch') }}
           </button>
         </div>
         <div v-if="deleting" class="local-actions">
           <p>
-            Delete local branch <strong>{{ deleting }}</strong
+            {{ t('Delete local branch') }} <strong>{{ deleting }}</strong
             >?
           </p>
           <button
@@ -430,83 +561,111 @@ async function forget() {
               )
             "
           >
-            Confirm deletion
+            {{ t('Confirm deletion') }}
           </button>
-          <button class="button button-secondary" @click="deleting = ''">Cancel</button>
+          <button class="button button-secondary" @click="deleting = ''">{{ t('Cancel') }}</button>
         </div>
       </div>
-      <form v-if="snapshot.head" class="local-form" @submit.prevent="createBranch">
-        <label class="local-field"
-          >New branch name
-          <input v-model="branchName" class="form-control" required :disabled="!!progress"
-        /></label>
-        <label class="local-field">
-          Starting point
-          <select v-model="branchStart" class="form-control" :disabled="!!progress">
-            <option value="">Current commit (HEAD)</option>
-            <option v-for="branch in snapshot.branches" :key="branch">{{ branch }}</option>
-          </select>
-        </label>
-        <div>
-          <button class="button button-secondary" type="submit" :disabled="!!progress">
-            Create branch
-          </button>
-        </div>
-      </form>
-      <p v-else>Create the first commit to add more branches.</p>
+      <details v-if="snapshot.head" class="task-disclosure">
+        <summary>{{ t('New branch') }}</summary>
+        <form class="local-form" @submit.prevent="createBranch">
+          <label class="local-field"
+            >{{ t('New branch name') }}
+            <input v-model="branchName" class="form-control" required :disabled="!!progress"
+          /></label>
+          <label class="local-field">
+            {{ t('Starting point') }}
+            <select v-model="branchStart" class="form-control" :disabled="!!progress">
+              <optgroup class="select-options" label="">
+                <option value="">{{ t('Current commit (HEAD)') }}</option>
+                <option v-for="branch in snapshot.branches" :key="branch">{{ branch }}</option>
+              </optgroup>
+            </select>
+          </label>
+          <div>
+            <button
+              class="button button-secondary"
+              type="submit"
+              :disabled="!!progress || !branchName.trim()"
+            >
+              {{ t('Create branch') }}
+            </button>
+          </div>
+        </form>
+      </details>
+      <p v-else>{{ t('Create the first commit to add more branches.') }}</p>
     </section>
-    <section class="panel local-panel" aria-labelledby="remotes-title">
-      <h2 id="remotes-title">Remotes</h2>
+    <section v-show="task === 'remotes'" class="panel local-panel" aria-labelledby="remotes-title">
+      <h2 id="remotes-title">{{ t('Remotes') }}</h2>
       <ul v-if="snapshot.remotes.length" class="local-list">
         <li v-for="item in snapshot.remotes" :key="item.name">
           <strong>{{ item.name }}</strong>
-          <p>Fetch · {{ item.fetchUrl ?? 'Unsupported target' }}</p>
-          <p>Push · {{ item.pushUrl ?? 'Unsupported target' }}</p>
+          <p>{{ t('Fetch') }} · {{ item.fetchUrl ?? t('Unsupported target') }}</p>
+          <p>{{ t('Push') }} · {{ item.pushUrl ?? t('Unsupported target') }}</p>
         </li>
       </ul>
-      <p v-else>No remotes configured.</p>
-      <form class="local-form" @submit.prevent="addRemote">
-        <label class="local-field"
-          >Remote name
-          <input v-model="remoteName" class="form-control" required :disabled="!!progress"
-        /></label>
-        <label class="local-field"
-          >Remote URL
-          <input
-            v-model="remoteUrl"
-            class="form-control"
-            required
-            :disabled="!!progress"
-            autocomplete="off"
-        /></label>
-        <div>
-          <button class="button button-secondary" type="submit" :disabled="!!progress">
-            Add remote
-          </button>
-        </div>
-      </form>
-      <div v-if="snapshot.remotes.length" class="local-form">
-        <h3>Synchronize</h3>
-        <p>Git uses your configured credential helper or SSH identity for remote access.</p>
+      <p v-else>{{ t('No remotes configured.') }}</p>
+      <details class="task-disclosure">
+        <summary>{{ t('Add remote') }}</summary>
+        <form class="local-form" @submit.prevent="addRemote">
+          <label class="local-field"
+            >{{ t('Remote name') }}
+            <input v-model="remoteName" class="form-control" required :disabled="!!progress"
+          /></label>
+          <label class="local-field"
+            >{{ t('Remote URL') }}
+            <input
+              v-model="remoteUrl"
+              class="form-control"
+              required
+              :disabled="!!progress"
+              autocomplete="off"
+          /></label>
+          <div>
+            <button
+              class="button button-secondary"
+              type="submit"
+              :disabled="!!progress || !remoteName.trim() || !remoteUrl.trim()"
+            >
+              {{ t('Add remote') }}
+            </button>
+          </div>
+        </form>
+      </details>
+      <button
+        v-if="snapshot.remotes.length"
+        type="button"
+        class="button button-secondary"
+        :aria-expanded="syncOpen"
+        @click="syncOpen = !syncOpen"
+      >
+        {{ t('Synchronize') }}
+      </button>
+      <div v-if="snapshot.remotes.length && syncOpen" class="local-form">
+        <p>
+          {{ t('Git uses your configured credential helper or SSH identity for remote access.') }}
+        </p>
         <label class="local-field">
-          Target remote
+          {{ t('Target remote') }}
           <select v-model="selectedRemote" class="form-control" :disabled="!!progress">
-            <option value="">Choose a remote</option>
-            <option v-for="item in snapshot.remotes" :key="item.name">{{ item.name }}</option>
+            <optgroup class="select-options" label="">
+              <option value="">{{ t('Choose a remote') }}</option>
+              <option v-for="item in snapshot.remotes" :key="item.name">{{ item.name }}</option>
+            </optgroup>
           </select>
         </label>
         <label class="local-field">
-          Remote branch
+          {{ t('Remote branch') }}
           <input
             v-model="remoteBranch"
             class="form-control"
-            :placeholder="snapshot.branch ?? 'Branch name'"
+            :placeholder="snapshot.branch ?? t('Branch name')"
             :disabled="!!progress"
           />
         </label>
         <label
-          ><input v-model="track" type="checkbox" :disabled="!!progress" /> Set upstream after
-          push</label
+          ><input v-model="track" type="checkbox" :disabled="!!progress" />
+          {{ t('Set upstream after push') }}</label
         >
         <p v-if="remote && snapshot.branch && remoteBranch">
           {{ snapshot.branch }} ↔ {{ remote.name }}/{{ remoteBranch }}
@@ -518,7 +677,7 @@ async function forget() {
             :disabled="!!progress || !remote?.fetchUrl"
             @click="synchronize('fetch')"
           >
-            Fetch
+            {{ t('Fetch') }}
           </button>
           <button
             class="button button-secondary"
@@ -528,7 +687,7 @@ async function forget() {
             "
             @click="synchronize('pull')"
           >
-            Pull (fast-forward only)
+            {{ t('Pull (fast-forward only)') }}
           </button>
           <button
             class="button button-primary"
@@ -538,7 +697,7 @@ async function forget() {
             "
             @click="synchronize('push')"
           >
-            Push
+            {{ t('Push') }}
           </button>
         </div>
       </div>

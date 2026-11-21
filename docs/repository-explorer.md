@@ -1,5 +1,8 @@
 # Repository explorer
 
+On wide windows, drag the divider between the tree and source preview or focus it and use the arrow
+keys. In narrow windows, open a file and use **Back to files** to return to the tree.
+
 Status: implemented on `feature/repository-explorer`. The explorer adds read-only details, branch
 selection, directory browsing, and text previews to the existing account-scoped repository list.
 Live authenticated/private-repository checks remain pending; automated fixtures do not establish
