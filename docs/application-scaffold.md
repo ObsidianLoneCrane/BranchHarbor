@@ -72,6 +72,7 @@ Open the [project environment](development-environment.md), then run:
 | `pnpm check:rust`                      | Rust format, Clippy with warnings denied, and Cargo tests              |
 | `pnpm build`                           | Type-check and generate frontend production assets                     |
 | `pnpm build:windows-preview`           | Build the Windows debug executable with embedded frontend assets       |
+| `pnpm build:windows-release`           | Build the optimized Windows executable with embedded frontend assets   |
 | `pnpm tauri build --bundles nsis --ci` | Windows executable and unsigned test installer                         |
 
 `pnpm format` writes the project's formatting. CI only checks formatting. Rust tests now exercise
@@ -100,6 +101,11 @@ data and WebView2 profile, launch through the same wrapper:
 ```
 
 Close the preview executable before rebuilding it. The `.dev-env/` directory is ignored by Git.
+
+Run `./scripts/windows/dev.ps1 pnpm build:windows-release` for
+`.dev-env/target/release/branchharbor.exe`. Open the optimized executable in a normal Windows
+session to use the release application's data and credential store. Both commands produce standalone
+executables for use with WebView2. Use the NSIS command when testing installation.
 
 ### Browser checks
 
@@ -154,6 +160,11 @@ The Home screenshots use sample repositories and commits. Settings uses the brow
 ![Settings in light mode](images/settings-light.png)
 
 ## Validation record
+
+The Windows Debug and Release executables both opened at 1080 × 700 in WebView2. Edge review
+included keyboard selection in the language menu, a Simplified Chinese account error at 720 × 560,
+and scrolling a commit graph with seven simultaneous lanes. The
+[local Git validation record](local-git.md#storage-and-validation) covers native folder import.
 
 Foundation Windows verification on 2026-11-02 included frontend formatting/lint/types, 24
 unit/component and policy tests, 5 Edge browser tests, frontend production build, Rust checks,
