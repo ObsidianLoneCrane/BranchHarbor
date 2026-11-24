@@ -7,10 +7,12 @@ use reqwest::{
 use serde::Deserialize;
 use std::{
     io::Read,
+    sync::OnceLock,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 pub const PAGE_SIZE: usize = 30;
+static HTTP: OnceLock<std::result::Result<Client, reqwest::Error>> = OnceLock::new();
 
 pub trait Hosting: Send + Sync {
     fn contribution_source(
@@ -94,12 +96,18 @@ impl HttpHosting {
         body: RequestBody<'_>,
         limit: u64,
     ) -> Result<(T, HeaderMap)> {
-        let client = Client::builder()
-            .user_agent(concat!("BranchHarbor/", env!("CARGO_PKG_VERSION")))
-            .redirect(reqwest::redirect::Policy::none())
-            .connect_timeout(Duration::from_secs(10))
-            .timeout(Duration::from_secs(25))
-            .build()
+        let client = HTTP
+            .get_or_init(|| {
+                Client::builder()
+                    .user_agent(concat!("BranchHarbor/", env!("CARGO_PKG_VERSION")))
+                    .redirect(reqwest::redirect::Policy::none())
+                    .connect_timeout(Duration::from_secs(10))
+                    .timeout(Duration::from_secs(25))
+                    .pool_idle_timeout(Duration::from_secs(30))
+                    .pool_max_idle_per_host(2)
+                    .build()
+            })
+            .as_ref()
             .map_err(|_| AppError::new("network", "The HTTPS client could not be initialized."))?;
         let base = provider.api();
         #[cfg(test)]

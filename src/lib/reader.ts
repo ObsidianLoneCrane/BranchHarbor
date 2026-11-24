@@ -1,7 +1,32 @@
 import { AccountError, native } from './accounts'
 import type { RepositoryTarget } from './explorer'
+import { invoke, isTauri } from '@tauri-apps/api/core'
+import type { Provider } from './accounts'
 
 export type Resource = 'pulls' | 'issues'
+
+export function discussionUrl(
+  provider: Provider,
+  target: RepositoryTarget,
+  resource: Resource,
+  number: string,
+) {
+  const segments = [target.owner, target.name, number]
+  if (
+    segments.some(
+      (segment) => !segment || segment === '.' || segment === '..' || /[/\\]/.test(segment),
+    )
+  )
+    return null
+  const [owner, name, item] = segments.map(encodeURIComponent)
+  const collection = resource === 'pulls' && provider === 'github' ? 'pull' : resource
+  return `https://${provider}.com/${owner}/${name}/${collection}/${item}`
+}
+
+export async function openDiscussion(url: string) {
+  if (isTauri()) await invoke('open_discussion_page', { url })
+  else window.open(url, '_blank', 'noopener,noreferrer')
+}
 export type ReaderFilter = 'open' | 'closed' | 'merged' | 'progressing' | 'rejected' | 'all'
 export interface WorkItem {
   number: string

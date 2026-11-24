@@ -80,6 +80,10 @@ export async function installExplorerFixture(
               ],
             }
           }
+          if (command === 'open_discussion_page') {
+            sessionStorage.setItem('opened-discussion', String(args.url))
+            return
+          }
           if (command !== 'explore_repository') throw new Error('Unsupported fixture command')
           const query = args.query as {
             accountId: string

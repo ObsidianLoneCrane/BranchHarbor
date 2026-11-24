@@ -57,6 +57,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_runtime_info,
+            open_discussion_page,
             accounts::list_accounts,
             accounts::connect_account,
             accounts::disconnect_account,
@@ -84,6 +85,25 @@ pub fn run() {
         .expect("Failed to start BranchHarbor");
 }
 
+#[tauri::command]
+async fn open_discussion_page(url: String) -> Result<(), &'static str> {
+    let url = reqwest::Url::parse(&url).map_err(|_| "browserOpenFailed")?;
+    if url.scheme() != "https"
+        || !matches!(url.host_str(), Some("github.com" | "gitee.com"))
+        || !url.username().is_empty()
+        || url.password().is_some()
+        || url.port().is_some()
+        || url.query().is_some()
+        || url.fragment().is_some()
+    {
+        return Err("browserOpenFailed");
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        tauri_plugin_opener::open_url(url.as_str(), None::<&str>).map_err(|_| "browserOpenFailed")
+    })
+    .await
+    .map_err(|_| "browserOpenFailed")?
+}
 mod accounts;
 mod local_git;
 use std::sync::Arc;

@@ -1,7 +1,9 @@
 import { createRouter, createWebHashHistory, type RouterHistory } from 'vue-router'
+import { useAccounts } from './composables/accounts'
+import { prepareDiscussionList } from './composables/reader'
 
 export function createAppRouter(history: RouterHistory = createWebHashHistory()) {
-  return createRouter({
+  const router = createRouter({
     history,
     routes: [
       {
@@ -61,4 +63,18 @@ export function createAppRouter(history: RouterHistory = createWebHashHistory())
     ],
     scrollBehavior: (to, from, saved) => saved ?? (to.path === from.path ? false : { top: 0 }),
   })
+  router.beforeEach((to, from) => {
+    if (to.name !== 'repository-reader' || from.name === 'repository-reader' || to.params.number)
+      return
+    if ((to.query.state && to.query.state !== 'open') || (to.query.page && to.query.page !== '1'))
+      return
+    const { accountId, owner, name, resource } = to.params
+    if (resource !== 'pulls' && resource !== 'issues') return
+    if (typeof accountId !== 'string' || typeof owner !== 'string' || typeof name !== 'string')
+      return
+    const account = useAccounts().accounts.value.find((value) => value.id === accountId)
+    if (account?.credentialStatus === 'saved')
+      prepareDiscussionList({ accountId, owner, name }, resource)
+  })
+  return router
 }

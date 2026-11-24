@@ -294,6 +294,8 @@
   "Delete remote tag": "删除远程标签",
   "The remote reference changed or disappeared. Refresh and confirm the target again.": "远程引用已更改或消失。请刷新后重新确认删除目标。",
   "The default branch cannot be deleted here.": "这里无法删除默认分支。",
+  "Open in browser": "在浏览器中打开",
+  "The discussion could not be opened in the browser.": "无法在浏览器中打开该讨论。",
   "The remote endpoint changed. Refresh references and try again.": "远程端点已更改。请刷新引用后重试。",
   "{count} more": "另有 {count} 项",
   "Your platforms, together in one place.": "管理已连接的平台账号。",

@@ -10,8 +10,8 @@ coverage.
 1. Connect a desktop account using the [account guide](provider-accounts.md), open **Repositories**,
    and select a repository.
 2. Use **Files**, **Pull requests**, or **Issues** to focus on one repository task. Selecting
-   another task clears the previous discussion view. Returning to Files reloads its default
-   branch/root.
+   another task switches the discussion context. Recent discussion pages can be reused when
+   returning to a task.
 3. Select a state and move between provider pages. Lists show title, number, author, state, labels,
    and update time; they do not invent total repository counts.
 4. Open an item to read its description and general discussion comments. PR details also show
@@ -25,9 +25,13 @@ coverage.
 
 List filters, provider page, item number, and comment page are encoded in local hash routes. Browser
 Back/Forward and reload restore that navigation, subject to current permissions. Bodies, tokens,
-titles, and comment text are never placed in routes. The mounted reader retains one list page and
-one active detail/comment page in memory; it introduces no persistent discussion cache or polling.
-Times are displayed in the device's local time using English formatting.
+titles, and comment text are never placed in routes. The session cache holds up to 32 list, detail,
+and comment responses in memory. Entries are fresh for one minute and eligible for stale display for
+up to ten minutes. The default list request can start while Vue loads the reader component, and the
+selected tab shows a progress indicator during that transition. Uncached details and comments load
+concurrently. Returning to the visible reader can refresh expired data, and **Refresh** fetches it
+on demand. Credential changes and storage cleanup clear the session cache. Times use the device's
+local time and selected language.
 
 ## Provider differences
 
@@ -81,6 +85,9 @@ repositories, tasks, items, filters, or pages. Credentials remain outside fronte
 Descriptions and comments are shown as escaped plain text, including Markdown source. Embedded HTML,
 scripts, image URLs, and Markdown links are not rendered, executed, or fetched. Remote avatars are
 not requested. This increment adds no Markdown renderer, dependencies, plugins, or write APIs.
+
+Open **Open in browser** on a detail page to continue in GitHub or Gitee. Changes to pull requests
+and issues, including merging, are handled in the platform's web UI.
 
 Each description/comment is limited to 64 KiB on a UTF-8 boundary, with a visible truncation notice.
 Lists omit body text; up to 100 label names are retained per item. Bodies remain transient memory

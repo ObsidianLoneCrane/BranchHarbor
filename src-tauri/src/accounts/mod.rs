@@ -27,27 +27,33 @@ pub struct AccountService {
 impl AccountService {
     pub fn read_collaboration(&self, query: reader::ReadQuery) -> Result<reader::ReadResponse> {
         query.validate()?;
+        let (account, token) = self.authorization_for(&query.account_id, |account| {
+            query.validate_provider(account.provider)
+        })?;
+        self.hosting.read_collaboration(&account, &token, &query)
+    }
+    fn authorization(&self, id: &str) -> Result<(Account, Zeroizing<String>)> {
+        self.authorization_for(id, |_| Ok(()))
+    }
+    fn authorization_for(
+        &self,
+        id: &str,
+        validate: impl FnOnce(&Account) -> Result<()>,
+    ) -> Result<(Account, Zeroizing<String>)> {
         let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
         let connection = storage::open(&self.path)?;
-        let account = storage::get(&connection, &query.account_id)?;
-        query.validate_provider(account.provider)?;
+        let account = storage::get(&connection, id)?;
+        validate(&account)?;
         let token = self
             .credentials
             .read(&account.id)?
             .filter(|token| !token.is_empty())
             .ok_or_else(AppError::missing)?;
-        self.hosting.read_collaboration(&account, &token, &query)
+        Ok((account, token))
     }
     pub fn explore(&self, query: explorer::ExploreQuery) -> Result<explorer::ExploreResponse> {
         query.validate()?;
-        let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
-        let connection = storage::open(&self.path)?;
-        let account = storage::get(&connection, &query.account_id)?;
-        let token = self
-            .credentials
-            .read(&account.id)?
-            .filter(|token| !token.is_empty())
-            .ok_or_else(AppError::missing)?;
+        let (account, token) = self.authorization(&query.account_id)?;
         self.hosting.explore(&account, &token, &query)
     }
     pub fn new(path: PathBuf) -> Self {
@@ -79,7 +85,6 @@ impl AccountService {
         token: Zeroizing<String>,
         expected_id: Option<String>,
     ) -> Result<Account> {
-        let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
         let token = token.trim();
         if token.is_empty() || token.len() > 4096 || token.chars().any(char::is_whitespace) {
             return Err(AppError::new(
@@ -88,6 +93,7 @@ impl AccountService {
             ));
         }
         let account = self.hosting.identity(provider, token)?;
+        let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
         if expected_id.as_ref().is_some_and(|id| id != &account.id) {
             return Err(AppError::new(
                 "accountMismatch",
@@ -141,14 +147,7 @@ impl AccountService {
                 "The repository page is out of range.",
             ));
         }
-        let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
-        let connection = storage::open(&self.path)?;
-        let account = storage::get(&connection, &query.account_id)?;
-        let token = self
-            .credentials
-            .read(&account.id)?
-            .filter(|token| !token.is_empty())
-            .ok_or_else(AppError::missing)?;
+        let (account, token) = self.authorization(&query.account_id)?;
         self.hosting.repositories(&account, &token, &query)
     }
 }
