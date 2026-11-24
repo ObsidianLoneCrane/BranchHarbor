@@ -22,6 +22,9 @@
   --art-line: #c4d3b9;
   --calendar-cell: #e8eef0;
   --gitee-soft: #faefec;
+  --gitee-source: #914133;
+  --github-source: #424d80;
+  --github-source-surface: #edf0fa;
 }
 
 :root[data-theme='dark'] {
@@ -48,4 +51,7 @@
   --art-line: #526a45;
   --calendar-cell: #35444f;
   --gitee-soft: #3a2a28;
+  --gitee-source: #f1aa9c;
+  --github-source: #bdc9f5;
+  --github-source-surface: #303a57;
 }

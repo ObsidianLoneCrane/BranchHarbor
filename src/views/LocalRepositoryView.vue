@@ -20,7 +20,11 @@ import '../localGit.css'
 import LocalFiles from '../components/LocalFiles.vue'
 import CommitHistory from '../components/CommitHistory.vue'
 import WorkspaceSplit from '../components/WorkspaceSplit.vue'
+import LocalReferences from '../components/LocalReferences.vue'
+import RemoteReferences from '../components/RemoteReferences.vue'
 import { t } from '../lib/locale'
+import { invalidateLocalCatalog, recordRepositoryVisit } from '../composables/workspaceRepositories'
+import { invalidateLocalActivity } from '../composables/workspaceActivity'
 
 const route = useRoute()
 const router = useRouter()
@@ -55,6 +59,7 @@ const tasks = {
   files: 'Files',
   history: 'History',
   branches: 'Branches',
+  references: 'References',
   remotes: 'Remotes',
 } as const
 const task = computed(() =>
@@ -139,6 +144,7 @@ async function load(target: number) {
     if (id.value !== target) return
     if (!found) throw 'notRegistered'
     repository.value = found
+    recordRepositoryVisit(`local:${target}`)
     await refresh(target)
   } catch (error) {
     if (id.value === target) alert.value = localGitError(error)
@@ -177,6 +183,8 @@ async function perform(operation: LocalOperation, pending: string, success: stri
   let succeeded = false
   try {
     await changeLocal(target, operation)
+    invalidateLocalActivity()
+    if (operation.kind === 'addRemote') invalidateLocalCatalog()
     succeeded = true
     if (id.value === target) notice.value = success
   } catch (error) {
@@ -272,6 +280,8 @@ async function forget() {
   alert.value = ''
   try {
     await removeLocal(target)
+    invalidateLocalCatalog()
+    invalidateLocalActivity()
     if (id.value === target) await router.push({ name: 'repositories' })
   } catch (error) {
     if (id.value === target) alert.value = localGitError(error)
@@ -595,6 +605,13 @@ async function forget() {
       </details>
       <p v-else>{{ t('Create the first commit to add more branches.') }}</p>
     </section>
+    <LocalReferences
+      v-if="task === 'references'"
+      :id="id"
+      :key="id"
+      :branch="snapshot.branch"
+      :revision="historyRevision"
+    />
     <section v-show="task === 'remotes'" class="panel local-panel" aria-labelledby="remotes-title">
       <h2 id="remotes-title">{{ t('Remotes') }}</h2>
       <ul v-if="snapshot.remotes.length" class="local-list">
@@ -605,6 +622,14 @@ async function forget() {
         </li>
       </ul>
       <p v-else>{{ t('No remotes configured.') }}</p>
+      <RemoteReferences
+        v-if="task === 'remotes' && snapshot.remotes.length"
+        :id="id"
+        :key="id"
+        :remotes="snapshot.remotes"
+        :disabled="!!progress"
+        @deleted="historyRevision++"
+      />
       <details class="task-disclosure">
         <summary>{{ t('Add remote') }}</summary>
         <form class="local-form" @submit.prevent="addRemote">

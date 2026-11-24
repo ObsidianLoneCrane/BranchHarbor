@@ -48,15 +48,22 @@ pub fn run() {
             let root = std::env::var_os("BRANCHHARBOR_DEV_DATA_DIR")
                 .map(std::path::PathBuf::from)
                 .unwrap_or_else(|| root.join("development"));
-            let path = root.join("accounts.sqlite3");
+            let data = app_data::AppData::open(root)?;
+            let path = data.root().join("accounts.sqlite3");
             app.manage(Arc::new(accounts::AccountService::new(path)));
             app.manage(Arc::new(local_git::LocalGit::new(
-                root.join("local-repositories.sqlite3"),
+                data.root().join("local-repositories.sqlite3"),
             )));
+            app.manage(data);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             get_runtime_info,
+            app_data::get_storage_info,
+            app_data::schedule_data_move,
+            accounts::cache_storage,
+            accounts::read_recent_github_activity,
+            open_discussion_page,
             accounts::list_accounts,
             accounts::connect_account,
             accounts::disconnect_account,
@@ -66,6 +73,7 @@ pub fn run() {
             accounts::contributions::read_contribution_source,
             accounts::contributions::read_cached_contribution_source,
             local_git::list_local_repositories,
+            local_git::list_repository_links,
             pick_repository_folder,
             local_git::add_local_repository,
             local_git::remove_local_repository,
@@ -73,14 +81,39 @@ pub fn run() {
             local_git::read_local_diff,
             local_git::change_local_repository,
             local_git::activity::read_local_activity,
+            local_git::activity::read_recent_local_activity,
             local_git::inspection::read_local_history,
             local_git::inspection::read_local_tree,
-            local_git::inspection::read_local_blob
+            local_git::inspection::read_local_blob,
+            local_git::references::read_local_references,
+            local_git::references::read_remote_references,
+            local_git::references::delete_remote_reference
         ])
         .run(tauri::generate_context!())
         .expect("Failed to start BranchHarbor");
 }
+
+#[tauri::command]
+async fn open_discussion_page(url: String) -> Result<(), &'static str> {
+    let url = reqwest::Url::parse(&url).map_err(|_| "browserOpenFailed")?;
+    if url.scheme() != "https"
+        || !matches!(url.host_str(), Some("github.com" | "gitee.com"))
+        || !url.username().is_empty()
+        || url.password().is_some()
+        || url.port().is_some()
+        || url.query().is_some()
+        || url.fragment().is_some()
+    {
+        return Err("browserOpenFailed");
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        tauri_plugin_opener::open_url(url.as_str(), None::<&str>).map_err(|_| "browserOpenFailed")
+    })
+    .await
+    .map_err(|_| "browserOpenFailed")?
+}
 mod accounts;
+mod app_data;
 mod local_git;
 use std::sync::Arc;
 use tauri::Manager;

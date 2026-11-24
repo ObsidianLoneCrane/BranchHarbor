@@ -56,7 +56,3 @@ export function readContributionSource(accountId: string, day: string | null) {
 export function readCachedContributionSource(accountId: string, day: string | null) {
   return native<ContributionResponse | null>('read_cached_contribution_source', { accountId, day })
 }
-
-export function utcToday() {
-  return new Date().toISOString().slice(0, 10)
-}

@@ -27,27 +27,33 @@ pub struct AccountService {
 impl AccountService {
     pub fn read_collaboration(&self, query: reader::ReadQuery) -> Result<reader::ReadResponse> {
         query.validate()?;
+        let (account, token) = self.authorization_for(&query.account_id, |account| {
+            query.validate_provider(account.provider)
+        })?;
+        self.hosting.read_collaboration(&account, &token, &query)
+    }
+    fn authorization(&self, id: &str) -> Result<(Account, Zeroizing<String>)> {
+        self.authorization_for(id, |_| Ok(()))
+    }
+    fn authorization_for(
+        &self,
+        id: &str,
+        validate: impl FnOnce(&Account) -> Result<()>,
+    ) -> Result<(Account, Zeroizing<String>)> {
         let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
         let connection = storage::open(&self.path)?;
-        let account = storage::get(&connection, &query.account_id)?;
-        query.validate_provider(account.provider)?;
+        let account = storage::get(&connection, id)?;
+        validate(&account)?;
         let token = self
             .credentials
             .read(&account.id)?
             .filter(|token| !token.is_empty())
             .ok_or_else(AppError::missing)?;
-        self.hosting.read_collaboration(&account, &token, &query)
+        Ok((account, token))
     }
     pub fn explore(&self, query: explorer::ExploreQuery) -> Result<explorer::ExploreResponse> {
         query.validate()?;
-        let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
-        let connection = storage::open(&self.path)?;
-        let account = storage::get(&connection, &query.account_id)?;
-        let token = self
-            .credentials
-            .read(&account.id)?
-            .filter(|token| !token.is_empty())
-            .ok_or_else(AppError::missing)?;
+        let (account, token) = self.authorization(&query.account_id)?;
         self.hosting.explore(&account, &token, &query)
     }
     pub fn new(path: PathBuf) -> Self {
@@ -79,7 +85,6 @@ impl AccountService {
         token: Zeroizing<String>,
         expected_id: Option<String>,
     ) -> Result<Account> {
-        let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
         let token = token.trim();
         if token.is_empty() || token.len() > 4096 || token.chars().any(char::is_whitespace) {
             return Err(AppError::new(
@@ -88,6 +93,7 @@ impl AccountService {
             ));
         }
         let account = self.hosting.identity(provider, token)?;
+        let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
         if expected_id.as_ref().is_some_and(|id| id != &account.id) {
             return Err(AppError::new(
                 "accountMismatch",
@@ -141,16 +147,102 @@ impl AccountService {
                 "The repository page is out of range.",
             ));
         }
-        let _guard = self.operations.lock().map_err(|_| AppError::storage())?;
-        let connection = storage::open(&self.path)?;
-        let account = storage::get(&connection, &query.account_id)?;
-        let token = self
-            .credentials
-            .read(&account.id)?
-            .filter(|token| !token.is_empty())
-            .ok_or_else(AppError::missing)?;
+        let (account, token) = self.authorization(&query.account_id)?;
         self.hosting.repositories(&account, &token, &query)
     }
+}
+
+#[tauri::command]
+pub(crate) async fn read_recent_github_activity(
+    service: tauri::State<'_, Arc<AccountService>>,
+    account_id: String,
+    page: u32,
+) -> Result<Vec<RecentEvent>> {
+    if !(1..=10).contains(&page) {
+        return Err(AppError::new(
+            "invalidInput",
+            "The event page is out of range.",
+        ));
+    }
+    let service = Arc::clone(service.inner());
+    tauri::async_runtime::spawn_blocking(move || {
+        let (account, token) = service.authorization(&account_id)?;
+        if account.provider != Provider::Github {
+            return Err(AppError::new("invalidInput", "Select a GitHub account."));
+        }
+        let (events, _): (Vec<RawEvent>, _) = HttpHosting::new().request_limited(
+            account.provider,
+            &token,
+            &format!("users/{}/events/public", explorer::encode(&account.login)),
+            &[
+                ("page".into(), page.to_string()),
+                ("per_page".into(), "30".into()),
+            ],
+            2 * 1024 * 1024,
+        )?;
+        Ok(events
+            .into_iter()
+            .take(30)
+            .map(|event| RecentEvent {
+                id: event.id,
+                event_type: event.event_type,
+                created_at: event.created_at,
+                repository: event.repo.name,
+            })
+            .collect())
+    })
+    .await
+    .map_err(|_| AppError::storage())?
+}
+
+#[derive(serde::Deserialize)]
+struct RawEvent {
+    id: String,
+    #[serde(rename = "type")]
+    event_type: String,
+    created_at: String,
+    repo: EventRepository,
+}
+
+#[derive(serde::Deserialize)]
+struct EventRepository {
+    name: String,
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct RecentEvent {
+    id: String,
+    event_type: String,
+    created_at: String,
+    repository: String,
+}
+
+#[tauri::command]
+pub(crate) async fn cache_storage(
+    service: tauri::State<'_, Arc<AccountService>>,
+    clear: bool,
+) -> Result<u64> {
+    let service = Arc::clone(service.inner());
+    tauri::async_runtime::spawn_blocking(move || {
+        let _guard = service.operations.lock().map_err(|_| AppError::storage())?;
+        let connection = storage::open(&service.path)?;
+        if clear {
+            connection
+                .execute_batch("PRAGMA secure_delete=ON; DELETE FROM contribution_cache; VACUUM;")
+                .map_err(|_| AppError::storage())?;
+        }
+        let bytes: i64 = connection
+            .query_row(
+                "SELECT IFNULL(SUM(length(CAST(payload AS BLOB))), 0) FROM contribution_cache",
+                [],
+                |row| row.get(0),
+            )
+            .map_err(|_| AppError::storage())?;
+        u64::try_from(bytes).map_err(|_| AppError::storage())
+    })
+    .await
+    .map_err(|_| AppError::storage())?
 }
 
 #[tauri::command]

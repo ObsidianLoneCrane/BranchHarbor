@@ -65,7 +65,7 @@ export async function installExplorerFixture(
               accessNotice: 'Synthetic repositories only.',
               items: [
                 {
-                  id: `${account.provider}:${account.host}:44`,
+                  id: `${account.provider}:${account.host}:${query.page}`,
                   name,
                   fullName: `${account.login}/${name}`,
                   description: 'Synthetic repository for explorer checks.',
@@ -79,6 +79,10 @@ export async function installExplorerFixture(
                 },
               ],
             }
+          }
+          if (command === 'open_discussion_page') {
+            sessionStorage.setItem('opened-discussion', String(args.url))
+            return
           }
           if (command !== 'explore_repository') throw new Error('Unsupported fixture command')
           const query = args.query as {
@@ -100,6 +104,13 @@ export async function installExplorerFixture(
               visibility: 'private',
               defaultBranch: 'main',
               archived: false,
+            }
+          else if (query.kind === 'tags')
+            data = {
+              kind: 'tags',
+              page: query.page,
+              hasNext: query.page === 1,
+              items: [{ name: query.page === 1 ? 'v0.1.0' : 'v0.2.0', commit: { sha: sha('a') } }],
             }
           else if (query.kind === 'branches')
             data = {

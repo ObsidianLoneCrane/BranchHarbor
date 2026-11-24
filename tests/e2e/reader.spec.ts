@@ -2,6 +2,55 @@ import { expect, test } from '@playwright/test'
 import { installReaderFixture } from './reader-fixture'
 const root = '/#/repositories/github:github.com:1/alice/workspace'
 
+test('starts the first discussion request while the reader code is loading', async ({ page }) => {
+  await installReaderFixture(page)
+  let releaseChunk!: () => void
+  const chunkGate = new Promise<void>((resolve) => {
+    releaseChunk = resolve
+  })
+  await page.route('**/RepositoryReaderView-*.js', async (route) => {
+    await chunkGate
+    await route.continue()
+  })
+  await page.goto(root)
+  const tab = page.getByRole('link', { name: 'Pull requests', exact: true })
+  try {
+    await tab.click()
+    await expect(tab).toHaveAttribute('aria-busy', 'true')
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () => (window as unknown as { __readerCalls: object[] }).__readerCalls.length,
+        ),
+      )
+      .toBe(1)
+  } finally {
+    releaseChunk()
+  }
+  await expect(page.getByRole('link', { name: 'Improve branch browsing' })).toBeVisible()
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { __readerCalls: object[] }).__readerCalls.length,
+    ),
+  ).toBe(1)
+})
+
+test('reuses warm PR and issue pages and refreshes on demand', async ({ page }) => {
+  await installReaderFixture(page)
+  await page.goto(root + '/pulls')
+  await expect(page.getByRole('link', { name: 'Improve branch browsing' })).toBeVisible()
+  const tabs = page.getByRole('navigation', { name: 'Repository navigation' })
+  await tabs.getByRole('link', { name: 'Issues' }).click()
+  await expect(page.getByRole('link', { name: 'Handle an empty repository' })).toBeVisible()
+  await tabs.getByRole('link', { name: 'Pull requests' }).click()
+  await expect(page.getByRole('link', { name: 'Improve branch browsing' })).toBeVisible()
+  const calls = () =>
+    page.evaluate(() => (window as unknown as { __readerCalls: object[] }).__readerCalls.length)
+  expect(await calls()).toBe(2)
+  await page.getByRole('button', { name: 'Refresh', exact: true }).click()
+  await expect.poll(calls).toBe(3)
+})
+
 test('reads PR details and comments and restores the list filter and provider page', async ({
   page,
 }) => {
@@ -61,6 +110,10 @@ test('keeps merged PRs distinct and supports Gitee issue identifiers and states'
   await page.getByRole('combobox', { name: 'State', exact: true }).selectOption('progressing')
   await page.getByRole('link', { name: 'Handle an empty repository', exact: true }).click()
   await expect(page.getByRole('article', { name: 'Discussion detail' })).toContainText('#IKS135')
+  await page.getByRole('button', { name: 'Open in browser' }).click()
+  await expect
+    .poll(() => page.evaluate(() => sessionStorage.getItem('opened-discussion')))
+    .toBe('https://gitee.com/jane/workspace/issues/IKS135')
   await expect(
     page.getByRole('article', { name: 'Discussion detail' }).locator('.work-state'),
   ).toHaveText('In progress')

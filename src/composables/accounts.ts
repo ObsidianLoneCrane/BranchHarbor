@@ -1,5 +1,6 @@
 import { readonly, ref } from 'vue'
 import * as api from '../lib/accounts'
+import { clearSessionCaches } from '../lib/sessionCache'
 
 type AccountApi = Pick<typeof api, 'listAccounts' | 'connectAccount' | 'disconnectAccount'>
 
@@ -20,6 +21,14 @@ export function createAccountsStore(bridge: AccountApi = api) {
       .listAccounts()
       .then((items) => {
         if (generation === revision) {
+          const credentials = (accounts: api.Account[]) =>
+            JSON.stringify(
+              accounts
+                .map(({ id, credentialStatus, verifiedAt }) => [id, credentialStatus, verifiedAt])
+                .sort(),
+            )
+          if (loaded.value && credentials(accounts.value) !== credentials(items))
+            clearSessionCaches()
           accounts.value = items
           loaded.value = true
         }
@@ -43,6 +52,7 @@ export function createAccountsStore(bridge: AccountApi = api) {
     pending.value = true
     try {
       const account = await bridge.connectAccount(provider, token, expected)
+      clearSessionCaches()
       revision++
       loading.value = false
       active = null
@@ -61,6 +71,7 @@ export function createAccountsStore(bridge: AccountApi = api) {
     pending.value = true
     try {
       await bridge.disconnectAccount(id)
+      clearSessionCaches()
       revision++
       loading.value = false
       active = null

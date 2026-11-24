@@ -23,12 +23,11 @@ initial scope. The project is MIT-licensed and all project-authored content uses
 | Discovery          | List accessible repositories with ownership and platform filters            |
 | Local repositories | Import, clone, and create repositories                                      |
 | Remote association | Recognize existing remotes and associate multiple remotes with a local copy |
-| Browsing           | Browse files, selected revisions, branches, and commit history              |
+| Browsing           | Browse files, selected revisions, branches, tags, and commit history        |
 | Daily Git work     | Inspect changes and diffs, stage, commit, fetch, pull, and push             |
-| Branches           | Create, switch, delete, publish, and track local/remote branches            |
-| Collaboration      | Read PRs and issues first; add write workflows later                        |
+| Branches and tags  | Browse refs and delete one confirmed remote branch or tag at a time         |
+| Collaboration      | Read PRs and issues and open their platform pages in the system browser     |
 | Activity           | Show dated personal activity with platform and repository context           |
-| Contributions      | Display independent GitHub and Gitee contribution calendars                 |
 
 Private repository access depends on authorization. Multiple accounts per provider must fit the
 model. Account sign-in, Git author name/email, and Git transport credentials are separate concepts
@@ -59,29 +58,18 @@ graph are separate features; a full interactive graph can follow basic history b
 
 ## Activity and contributions
 
-Daily activity and platform contributions are separate datasets. A local commit can appear before
-push; a push is not a contribution count. Provider rules and permissions determine contribution
-visibility. The [dashboard](contribution-sources.md) shows the GitHub calendar, the Gitee public
-event sample, and dated local commits. Activity opens on the current UTC date and lets users choose
-an earlier date. Source and refresh labels identify the data shown.
-
-- Store and display GitHub/Gitee calendars independently.
-- Prefer GitHub's official GraphQL contribution calendar where authorized.
-- Validate a supported source for Gitee full-year data before promising website parity. This is an
-  open feasibility requirement.
-- Label application-derived Gitee statistics with their scope and limitations. Do not present
-  estimated counts as an official calendar.
-- Do not reconstruct full history from a bounded recent-events feed.
-- Preserve provider calendar dates. Filter Gitee events by their UTC date and display the original
-  timestamp offset. Use Git committer timestamps in UTC for the local activity list.
-- Show refresh time; distinguish unavailable data from zero activity.
+[Activity](contribution-sources.md) combines local commits and available public platform events.
+Group them by local date and sort newest first. Filter by source, repository, and activity type. Use
+labels for sources and stable emphasis colors for repository names. The platform event feeds cover
+recent public activity. The same source guide records earlier contribution API research.
 
 ## Interface principles
 
-Primary destinations are Home, Repositories, Activity, and Settings. Home shows contribution
-summaries, a brief daily summary, and recent local repositories. Activity holds the full calendar
-and events. Repository details use task-focused Changes, Files, History, Branches, Pull Requests,
-and Issues views.
+Primary destinations are Home, Repositories, Activity, and Settings. Home shows frequently used
+repositories, recent activity, and equivalent account summaries. The repository catalog combines
+local and connected repositories, labels their sources, and opens add actions in a dialog.
+Repository details use task-focused Changes, Files, History, Branches, Pull Requests, and Issues
+views.
 
 Show the current task's information first. Load large trees and lists incrementally. Keep advanced
 options and logs expandable. Use consistent spacing, accessible controls, restrained colors, and
@@ -94,18 +82,19 @@ data as supplied.
 - Minimize application size and idle work; establish measured budgets from a real prototype instead
   of advertising unverified memory or size numbers.
 - Keep Git/network work off the UI thread and limit background concurrency.
+- Refresh on demand, view entry, and foreground return. Avoid periodic idle polling.
 - Cache metadata locally and show stale-data age when offline.
 - Keep credentials out of source, frontend persistent storage, remote URLs, and logs.
 - Treat paths, worktrees, and unpushed changes as device-local state. Automatic configuration or
   credential synchronization is outside initial scope.
+- Show the active SQLite directory, let users relocate it, and provide scoped cache cleanup.
 - Validate installation and runtime behavior on declared OS/architecture targets.
 
 ## First usable version acceptance
 
 A user can connect accounts, find repositories, import or clone local copies, associate remotes,
 inspect files and changes, commit and synchronize work, manage basic branches, and read PRs/issues.
-Home shows separate contribution information with source/coverage labels and dated activity.
+Home and Activity show recent events with source labels. Activity groups entries by local date.
 
-Resolve the Gitee calendar feasibility requirement explicitly before claiming full delivery of the
-contribution-display requirement. See the [roadmap](roadmap.md) for implementation order and
-[architecture](architecture.md) for boundaries.
+See the [roadmap](roadmap.md) for implementation order and [architecture](architecture.md) for
+boundaries.

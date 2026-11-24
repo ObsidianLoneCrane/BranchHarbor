@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { language, t } from '../lib/locale'
-import { computed, onUnmounted, watch } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   ArrowLeft,
@@ -15,12 +15,22 @@ import ReaderError from '../components/ReaderError.vue'
 import ReaderPagination from '../components/ReaderPagination.vue'
 import { createReader } from '../composables/reader'
 import { useAccounts } from '../composables/accounts'
+import { useForegroundRefresh } from '../composables/foregroundRefresh'
+import { sessionCacheRevision } from '../lib/sessionCache'
 import { providerName } from '../lib/accounts'
-import { stateLabel, type BranchRef, type ReaderFilter, type Resource } from '../lib/reader'
+import {
+  discussionUrl,
+  openDiscussion,
+  stateLabel,
+  type BranchRef,
+  type ReaderFilter,
+  type Resource,
+} from '../lib/reader'
 
 const route = useRoute()
 const router = useRouter()
 const reader = createReader()
+const accounts = useAccounts()
 const { state, remaining } = reader
 const target = computed(() => ({
   accountId: String(route.params.accountId),
@@ -31,8 +41,28 @@ const resource = computed(() => route.params.resource as Resource)
 const number = computed(() => String(route.params.number ?? ''))
 const title = computed(() => (resource.value === 'pulls' ? 'Pull requests' : 'Issues'))
 const account = computed(() =>
-  useAccounts().accounts.value.find((account) => account.id === target.value.accountId),
+  accounts.accounts.value.find((account) => account.id === target.value.accountId),
 )
+const webPage = computed(() => {
+  const item = state.detail?.item
+  if (!account.value || !item || item.number !== number.value) return null
+  return discussionUrl(account.value.provider, target.value, resource.value, item.number)
+})
+const browserError = ref(false)
+watch(webPage, () => {
+  browserError.value = false
+})
+
+async function openWebPage() {
+  const url = webPage.value
+  if (!url) return
+  browserError.value = false
+  try {
+    await openDiscussion(url)
+  } catch {
+    if (webPage.value === url) browserError.value = true
+  }
+}
 const filters = computed<ReaderFilter[]>(() =>
   resource.value === 'pulls'
     ? ['open', 'closed', 'merged', 'all']
@@ -62,6 +92,9 @@ watch(
     target.value.accountId,
     target.value.owner,
     target.value.name,
+    sessionCacheRevision.value,
+    account.value?.verifiedAt,
+    account.value?.credentialStatus,
     resource.value,
     number.value,
     filter.value,
@@ -69,6 +102,10 @@ watch(
     route.query.comments,
   ],
   () => {
+    if (account.value?.credentialStatus !== 'saved') {
+      reader.reset()
+      return
+    }
     void reader.open({
       target: target.value,
       resource: resource.value,
@@ -80,6 +117,10 @@ watch(
   },
   { immediate: true },
 )
+useForegroundRefresh(() => {
+  if (state.context && !state.busy && (!state.cachedAt || Date.now() - state.cachedAt >= 60_000))
+    void reader.retry()
+})
 onUnmounted(reader.dispose)
 function changeFilter(value: string) {
   void router.push({ ...listLocation.value, query: { state: value, page: '1' } })
@@ -112,9 +153,7 @@ function branch(value: BranchRef | null) {
 </script>
 
 <template>
-  <RouterLink
-    :to="{ name: 'repositories', query: { source: 'remote' } }"
-    class="text-link explorer-back"
+  <RouterLink :to="{ name: 'repositories' }" class="text-link explorer-back"
     ><ArrowLeft :size="14" aria-hidden="true" />{{ t('Back to repositories') }}</RouterLink
   >
   <div class="page-heading explorer-heading">
@@ -133,6 +172,13 @@ function branch(value: BranchRef | null) {
     </button>
   </div>
   <RepositoryTabs />
+  <p v-if="state.cachedAt" class="repository-scope">
+    {{
+      t('Refreshed {time}', {
+        time: new Date(state.cachedAt).toLocaleTimeString(language, { timeStyle: 'short' }),
+      })
+    }}
+  </p>
   <ReaderError
     v-if="state.error && state.errorFor !== 'comments'"
     :error="state.error"
@@ -172,7 +218,7 @@ function branch(value: BranchRef | null) {
           </select></label
         >
       </div>
-      <div v-if="state.busy === 'list'" class="repository-status" role="status">
+      <div v-if="state.busy === 'list' && !state.list" class="repository-status" role="status">
         <LoaderCircle :size="18" class="loading-icon" aria-hidden="true" />
         {{ t(resource === 'pulls' ? 'Loading pull requests...' : 'Loading issues...') }}
       </div>
@@ -246,7 +292,11 @@ function branch(value: BranchRef | null) {
           t(resource === 'pulls' ? 'Back to pull requests' : 'Back to issues')
         }}</RouterLink
       >
-      <div v-if="state.busy === 'detail'" class="panel repository-status" role="status">
+      <div
+        v-if="state.busy === 'detail' && !state.detail"
+        class="panel repository-status"
+        role="status"
+      >
         <LoaderCircle :size="18" class="loading-icon" aria-hidden="true" />{{
           t('Loading discussion...')
         }}
@@ -262,6 +312,12 @@ function branch(value: BranchRef | null) {
               ><span class="discussion-number">#{{ state.detail.item.number }}</span>
             </div>
             <h2>{{ state.detail.item.title }}</h2>
+            <button v-if="webPage" class="text-button" type="button" @click="openWebPage">
+              {{ t('Open in browser') }}
+            </button>
+            <p v-if="browserError" role="alert">
+              {{ t('The discussion could not be opened in the browser.') }}
+            </p>
             <p class="discussion-meta">
               {{ author(state.detail.item.author) }} ·
               {{ t('Created {time}', { time: when(state.detail.item.createdAt) }) }} ·
@@ -309,7 +365,11 @@ function branch(value: BranchRef | null) {
             :busy="!!state.busy"
             @retry="reader.retry"
           />
-          <p v-if="state.busy === 'comments'" class="repository-status" role="status">
+          <p
+            v-if="state.busy === 'comments' && !state.comments"
+            class="repository-status"
+            role="status"
+          >
             {{ t('Loading comments...') }}
           </p>
           <template v-else-if="state.comments"

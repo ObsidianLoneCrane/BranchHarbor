@@ -3,6 +3,13 @@
 On wide windows, drag the divider between the tree and source preview or focus it and use the arrow
 keys. In narrow windows, open a file and use **Back to files** to return to the tree.
 
+**Branches** and **Tags** show paginated lists from GitHub or Gitee using the selected account. Each
+row shows the provider's commit ID. To manage references on a configured Git remote, open the
+[local repository workspace](local-git.md#live-remote-references).
+
+Browser fixtures cover both providers and tag pagination. A public Gitee tag request returned the
+expected name and commit SHA. Authenticated tag coverage still requires a live test.
+
 Status: implemented on `feature/repository-explorer`. The explorer adds read-only details, branch
 selection, directory browsing, and text previews to the existing account-scoped repository list.
 Live authenticated/private-repository checks remain pending; automated fixtures do not establish
@@ -18,7 +25,7 @@ provider authorization coverage.
    directory** to navigate upward. The branch selector has independent page controls, 30 entries per
    page; a selected branch remains visible when it is outside the current branch page.
 5. **Refresh** reloads metadata and the selected branch at its latest commit, returning to the root.
-   **Back to repositories** restores the in-session list account, filters, and page. Reloading the
+   **Back to repositories** restores the in-session catalog filters and loaded pages. Reloading the
    app does not preserve explorer navigation or list filters.
 
 The layout focuses on a branch selector, directory entries, and one file preview. At narrow widths,
@@ -131,7 +138,7 @@ tokens and private source out of screenshots and logs. Repeat native preview/wor
 macOS and Linux before claiming runtime parity.
 
 The [PR/Issue reader](pr-issue-reader.md) adds separate repository navigation for read-only lists,
-details, and discussion comments. Local import, Git mutations, full history, tags, and contribution
+details, and discussion comments. Local import, Git mutations, full history, and contribution
 calendars remain separate roadmap work.
 
 ## Interface previews

@@ -73,10 +73,10 @@ verification on the target platforms. See the [local Git guide](local-git.md).
 
 ## Stage 4: personal overview and first usable version - implemented, acceptance pending
 
-- Home shows independent GitHub calendar and Gitee public event cards, recent local repositories,
-  and a UTC-day local commit summary.
-- Activity shows GitHub daily counts, a UTC-day filter for the Gitee event sample, and local commits
-  from registered working trees. Provider refreshes persist account-scoped data for offline reads.
+- Home shows frequently used repositories, recent activity across sources, and compact account
+  summaries.
+- Activity combines public provider events and local commits by date. The Gitee event sample is
+  available offline after a successful refresh.
 - The existing PR and Issue reader provides lists, details, and paginated discussion comments.
 - First-usable-version acceptance still requires authenticated native workflows on target platforms.
   The Gitee calendar remains unavailable. See the [contribution guide](contribution-sources.md).
@@ -91,8 +91,7 @@ top to leave more width for repository content. Inter is bundled for offline ren
 
 The first implementation introduces task tabs for local repositories, expandable local and remote
 directory trees, a local commit graph, and a persisted language switch. Home surfaces recent work
-and contribution summaries. Activity holds the full calendar and switches between platform data and
-local history.
+and compact provider connection status. Activity groups its unified timeline by local date.
 
 - Refine the visual hierarchy, typography, spacing, and light and dark themes across the existing
   desktop views. Check readability in both English and Simplified Chinese.
@@ -108,12 +107,33 @@ reading a history with diverging branches and a merge, and switching languages a
 views without losing the current task. Validate light and dark themes, keyboard navigation, and
 readability at the supported window sizes.
 
-## Stage 5: collaboration and distribution - deferred
+## Stage 5: branch and tag management - implemented, acceptance pending
 
-- Add PR/issue creation, comments, state changes, and supported merge workflows.
-- Add conflict assistance.
-- Implement release builds, signing, update channels, and migration checks.
-- Verify clean installation and upgrades for each declared distribution target.
+- Browse local branches and tags with their object IDs, and browse paginated GitHub and Gitee branch
+  and tag lists.
+- Query live references for a configured remote. Confirm and delete one remote branch or tag at a
+  time with a default-branch check and an expected-object lease.
+- Keep pull requests and issues read-only. Open their platform pages in the system browser for
+  collaboration.
 
-Release infrastructure may arrive earlier through focused PRs. Public readiness still depends on
-target validation and a complete, verified asset set.
+Acceptance includes same-named branches and tags, separate fetch and push endpoints, changed or
+protected references, and live validation through GitHub and Gitee test repositories.
+
+## Pre-release workspace optimization - implemented
+
+- Reuse recently viewed PR and Issue data and load details and comments in parallel. Refresh stale
+  data when the relevant view returns to the foreground.
+- Combine local, GitHub, and Gitee repositories in one catalog with a dialog for add operations.
+  Show recent activity grouped by date and keep source, repository, and event type filters.
+- Show the current database location and support relocation and cache cleanup through
+  [Data and storage](data-storage.md).
+- Measure CPU, memory, and power over extended idle and active sessions during release acceptance.
+
+## Stage 6: release acceptance and distribution - planned
+
+- Complete authenticated native acceptance and test clean installation, startup, and upgrades on
+  each intended target.
+- Verify every candidate asset, including the macOS x64 DMG, signatures, notarization where
+  applicable, and checksums.
+- Publish the first version using the [release workflow](branching-and-releases.md). Automatic
+  updates can follow in a separate increment.

@@ -1,18 +1,31 @@
 <script setup lang="ts">
 import { Activity, FolderGit2, House, Moon, Settings2, Sun } from '@lucide/vue'
-import { nextTick, onMounted, watch } from 'vue'
+import { isTauri } from '@tauri-apps/api/core'
+import { getCurrentWindow, type Window } from '@tauri-apps/api/window'
+import { nextTick, onMounted, shallowRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import WindowTitleBar from './components/WindowTitleBar.vue'
 import { useAppearance } from './composables/appearance'
 import { useAccounts } from './composables/accounts'
 import { language, setLanguage, t } from './lib/locale'
 
 const route = useRoute()
+const desktopWindow = shallowRef<Window>()
 const isSelected = (to: string) =>
   route.path === to || (to === '/repositories' && route.path.startsWith('/repositories/'))
 onMounted(() => {
   setLanguage(language.value)
   void useAccounts().ensureLoaded()
+  if (isTauri()) void readWindowFrame()
 })
+async function readWindowFrame() {
+  try {
+    const current = getCurrentWindow()
+    if ((await current.isDecorated()) === false) desktopWindow.value = current
+  } catch {
+    return
+  }
+}
 const brandIcon = '/brand.svg'
 const { isDark, setAppearance } = useAppearance()
 const navigation = [
@@ -40,10 +53,11 @@ watch(
 
 <template>
   <a href="#main-content" class="skip-link">{{ t('Skip to content') }}</a>
-  <div class="app-frame">
+  <div class="app-frame" :class="{ 'app-frame-desktop': desktopWindow }">
     <header class="app-header">
+      <WindowTitleBar v-if="desktopWindow" :desktop-window="desktopWindow" :icon="brandIcon" />
       <div class="app-bar">
-        <RouterLink to="/" class="brand" :aria-label="t('BranchHarbor home')"
+        <RouterLink v-if="!desktopWindow" to="/" class="brand" :aria-label="t('BranchHarbor home')"
           ><img :src="brandIcon" alt="" width="30" height="30" /><span
             >BranchHarbor</span
           ></RouterLink
@@ -82,15 +96,17 @@ watch(
         </div>
       </div>
     </header>
-    <main id="main-content" class="page-content" tabindex="-1">
-      <RouterView v-slot="{ Component, route: current }"
-        ><KeepAlive include="RepositoriesView,RepositoryExplorerView" :max="8"
-          ><component
-            :is="Component"
-            :key="
-              current.name === 'repository-explorer' ? current.path : String(current.name)
-            " /></KeepAlive
-      ></RouterView>
-    </main>
+    <div class="workspace-scroll">
+      <main id="main-content" class="page-content" tabindex="-1">
+        <RouterView v-slot="{ Component, route: current }"
+          ><KeepAlive include="RepositoriesView,RepositoryExplorerView" :max="8"
+            ><component
+              :is="Component"
+              :key="
+                current.name === 'repository-explorer' ? current.path : String(current.name)
+              " /></KeepAlive
+        ></RouterView>
+      </main>
+    </div>
   </div>
 </template>

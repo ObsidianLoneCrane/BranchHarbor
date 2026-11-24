@@ -97,6 +97,77 @@ pre,
 .app-bar .brand > span {
   display: inline;
 }
+.app-frame-desktop {
+  --window-titlebar-height: 36px;
+  --workspace-toolbar: 50px;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+.app-frame-desktop > .workspace-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.app-frame-desktop > .app-header {
+  position: relative;
+  flex-shrink: 0;
+}
+.app-frame-desktop .app-bar {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto;
+  gap: 12px;
+}
+.app-frame-desktop .app-navigation {
+  grid-area: 1 / 1;
+}
+.window-titlebar {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: space-between;
+  min-height: var(--window-titlebar-height);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  background: var(--canvas);
+  font-family: var(--ui-font);
+  font-size: var(--type-caption);
+  font-weight: 650;
+  user-select: none;
+}
+.window-titlebar-drag {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  padding-inline: 12px;
+}
+.window-controls {
+  display: flex;
+}
+.window-controls button {
+  display: grid;
+  width: 46px;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+.window-controls button:hover {
+  background: var(--hover);
+}
+.window-controls button:focus-visible {
+  outline-offset: -3px;
+}
+.window-controls .window-close:hover {
+  background: #bc283b;
+  color: white;
+}
+.window-control-error {
+  padding: 6px 12px;
+  color: var(--gitee-source);
+}
 .app-navigation {
   display: flex;
   align-self: stretch;
@@ -182,6 +253,9 @@ pre,
   top: var(--workspace-toolbar);
   z-index: 4;
   background: var(--canvas);
+}
+.app-frame-desktop .repository-task-bar {
+  top: 0;
 }
 .repository-heading {
   align-items: flex-start;
@@ -581,6 +655,200 @@ button[aria-expanded='true'] > .tree-caret {
 }
 .reader-current-detail {
   min-width: 0;
+}
+
+.repository-heading {
+  align-items: center;
+}
+.workspace-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+.workspace-filters .local-field {
+  flex: 1 1 10rem;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 550;
+}
+.workspace-filters .local-field input,
+.workspace-filters .local-field select {
+  width: 100%;
+  min-width: 0;
+}
+.workspace-repository-title,
+.platform-summary,
+.timeline-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+.workspace-repository-title h2 {
+  font-size: 14px;
+  font-weight: 620;
+}
+.workspace-repository-path,
+.timeline-meta,
+.platform-status {
+  color: var(--muted);
+  font-size: 12px;
+}
+.workspace-repository-row {
+  display: grid;
+  gap: 5px;
+}
+.workspace-repository-row .local-actions {
+  font-size: 13px;
+}
+.workspace-icon {
+  flex: none;
+  color: var(--accent);
+  vertical-align: text-bottom;
+}
+.workspace-timeline > li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 10px;
+}
+.workspace-timeline strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 610;
+}
+.timeline-days {
+  display: grid;
+  gap: 16px;
+}
+.timeline-day {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.timeline-day > .timeline-day-heading {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 7px 7px 0 0;
+  background: var(--canvas);
+  font-size: 13px;
+  font-weight: 650;
+}
+.timeline-day > .workspace-timeline {
+  padding-inline: 12px;
+}
+.timeline-day li:first-child {
+  border-top: 0;
+}
+.timeline-repository {
+  color: oklch(43% 0.115 var(--repository-hue));
+  font-weight: 650;
+}
+:root[data-theme='dark'] .timeline-repository {
+  color: oklch(81% 0.115 var(--repository-hue));
+}
+.timeline-repository a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.source-mark {
+  border-radius: 5px;
+  padding: 2px 6px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-size: 11px;
+  font-weight: 620;
+  line-height: 1.4;
+}
+.source-mark[data-source='github'] {
+  color: var(--github-source);
+  background: var(--github-source-surface);
+}
+.source-mark[data-source='gitee'],
+.workspace-warning {
+  color: var(--gitee-source);
+}
+.source-mark[data-source='gitee'] {
+  background: var(--gitee-soft);
+}
+.platform-summary {
+  font-size: 13px;
+}
+.platform-summary + .platform-summary {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.platform-summary .text-link {
+  margin-inline-start: auto;
+}
+.workspace-more {
+  justify-self: start;
+}
+.add-repository-dialog .dialog-heading {
+  margin-bottom: 14px;
+}
+.repository-dialog-options {
+  display: grid;
+  gap: 8px;
+}
+.repository-dialog-options .button {
+  justify-content: flex-start;
+}
+.repository-dialog-options svg,
+.repository-added {
+  color: var(--accent);
+}
+.repository-destination {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+.repository-dialog-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.add-repository-dialog .dialog-description {
+  margin-block: 6px;
+}
+.storage-details {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+}
+.storage-details > div {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  gap: 4px 12px;
+}
+.storage-details dt {
+  color: var(--muted);
+}
+.storage-details dt svg {
+  vertical-align: text-bottom;
+}
+.storage-details dd {
+  margin: 0;
+}
+.storage-path {
+  overflow-wrap: anywhere;
+}
+.storage-confirm {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--canvas);
+}
+
+@media (max-width: 520px) {
+  .storage-details > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 1050px) {

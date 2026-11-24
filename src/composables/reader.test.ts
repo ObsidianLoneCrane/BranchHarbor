@@ -82,24 +82,25 @@ describe('discussion reader state', () => {
     expect(model.state.list?.items).toEqual([])
     model.dispose()
   })
-  it('does not fetch old comments after a stale detail response arrives', async () => {
+  it('loads comments in parallel and ignores stale results from a previous item', async () => {
     let finish!: (result: ReaderResult<'detail'>) => void
-    const bridge = vi
-      .fn<ReaderBridge>()
-      .mockReturnValueOnce(
-        new Promise((resolve) => {
-          finish = resolve
-        }),
-      )
-      .mockResolvedValueOnce({ ...detail, item: { ...item, number: '43' } })
-      .mockResolvedValueOnce({ ...comments, number: '43' })
+    const bridge = vi.fn<ReaderBridge>(async (_target, _resource, operation) => {
+      if (operation.kind === 'comments') return { ...comments, number: operation.number }
+      if (operation.kind === 'detail' && operation.number === '43')
+        return { ...detail, item: { ...item, number: '43' } }
+      return new Promise((resolve) => {
+        finish = resolve
+      })
+    })
     const model = createReader(bridge)
     const pending = model.open({ ...context, number: '42' })
+    expect(bridge.mock.calls[1]?.[2]).toEqual({ kind: 'comments', number: '42', page: 1 })
     await model.open({ ...context, number: '43' })
     finish(detail)
     await pending
     expect(model.state.detail?.item.number).toBe('43')
-    expect(bridge).toHaveBeenCalledTimes(3)
+    expect(model.state.comments?.number).toBe('43')
+    expect(bridge).toHaveBeenCalledTimes(4)
     model.dispose()
   })
   it('keeps a readable detail when comments fail and retries only the failed comments', async () => {
