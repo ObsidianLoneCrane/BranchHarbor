@@ -4,6 +4,7 @@ import { onMounted, ref } from 'vue'
 import { useAppearance, type Appearance } from '../composables/appearance'
 import { getRuntimeInfo, type RuntimeInfo } from '../lib/runtime'
 import AccountConnections from '../components/AccountConnections.vue'
+import DataStorage from '../components/DataStorage.vue'
 import { language, setLanguage, t } from '../lib/locale'
 
 const { appearance, setAppearance } = useAppearance()
@@ -78,6 +79,7 @@ onMounted(loadRuntime)
       </p>
     </div>
   </section>
+  <DataStorage />
   <section class="settings-section" aria-labelledby="about-title">
     <div class="settings-intro">
       <h2 id="about-title">{{ t('About this workspace') }}</h2>

@@ -125,6 +125,8 @@ protected references, and live validation through GitHub and Gitee test reposito
   data when the relevant view returns to the foreground.
 - Combine local, GitHub, and Gitee repositories in one catalog with a dialog for add operations.
   Show recent activity grouped by date and keep source, repository, and event type filters.
+- Show the current database location and support relocation and cache cleanup through
+  [Data and storage](data-storage.md).
 - Measure CPU, memory, and power over extended idle and active sessions during release acceptance.
 
 ## Stage 6: release acceptance and distribution - planned

@@ -69,7 +69,8 @@ the device's time zone. The native contribution adapters remain available for AP
 
 The UI reuses bounded memory caches across navigation. Account changes invalidate them, and expired
 data loads when entering a view or returning to the foreground. There is no continuous background
-polling.
+polling. Settings can relocate the SQLite databases at startup and clear cached responses. See
+[data and storage](data-storage.md) for paths, backup behavior, and coverage.
 
 ## Repository workspace
 

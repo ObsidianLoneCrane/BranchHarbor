@@ -59,6 +59,15 @@ export async function installAccountFixture(
             }
           if (command === 'list_accounts') return accounts
           if (command === 'list_local_repositories') return []
+          if (command === 'list_repository_links') return []
+          if (command === 'get_storage_info')
+            return {
+              path: 'C:/Fixture/BranchHarbor',
+              pendingPath: null,
+              databaseBytes: 4096,
+              migrationFailed: false,
+            }
+          if (command === 'cache_storage') return 0
           if (command === 'connect_account') {
             if (args.token === 'invalid-fixture')
               throw { code: 'unauthorized', message: 'Do not echo provider response bodies.' }

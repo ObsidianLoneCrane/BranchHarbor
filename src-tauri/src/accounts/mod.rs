@@ -219,6 +219,33 @@ pub(crate) struct RecentEvent {
 }
 
 #[tauri::command]
+pub(crate) async fn cache_storage(
+    service: tauri::State<'_, Arc<AccountService>>,
+    clear: bool,
+) -> Result<u64> {
+    let service = Arc::clone(service.inner());
+    tauri::async_runtime::spawn_blocking(move || {
+        let _guard = service.operations.lock().map_err(|_| AppError::storage())?;
+        let connection = storage::open(&service.path)?;
+        if clear {
+            connection
+                .execute_batch("PRAGMA secure_delete=ON; DELETE FROM contribution_cache; VACUUM;")
+                .map_err(|_| AppError::storage())?;
+        }
+        let bytes: i64 = connection
+            .query_row(
+                "SELECT IFNULL(SUM(length(CAST(payload AS BLOB))), 0) FROM contribution_cache",
+                [],
+                |row| row.get(0),
+            )
+            .map_err(|_| AppError::storage())?;
+        u64::try_from(bytes).map_err(|_| AppError::storage())
+    })
+    .await
+    .map_err(|_| AppError::storage())?
+}
+
+#[tauri::command]
 pub async fn list_accounts(service: tauri::State<'_, Arc<AccountService>>) -> Result<Vec<Account>> {
     let service = service.inner().clone();
     tauri::async_runtime::spawn_blocking(move || service.list())

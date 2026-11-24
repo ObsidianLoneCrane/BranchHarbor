@@ -177,3 +177,61 @@ test('combines linked repositories and sorts recent activity across sources', as
   await expect(timeline.getByRole('heading', { name: 'Sunday, November 22, 2026' })).toBeVisible()
   await expect(page.getByText('UTC date range', { exact: true })).toHaveCount(0)
 })
+
+test('schedules and cancels a folder move and confirms cache cleanup', async ({
+  page,
+}, testInfo) => {
+  await page.addInitScript(() => {
+    let pendingPath: string | null = null
+    let cacheBytes = 8192
+    Object.defineProperty(window, 'isTauri', { value: true })
+    Object.defineProperty(window, '__TAURI_INTERNALS__', {
+      value: {
+        async invoke(command: string, args: Record<string, unknown> = {}) {
+          if (command === 'list_accounts') return []
+          if (command === 'get_runtime_info')
+            return { version: '0.1.0', platform: 'windows', architecture: 'x86_64' }
+          if (command === 'get_storage_info')
+            return {
+              path: 'C:/Users/Fixture/BranchHarbor',
+              pendingPath,
+              databaseBytes: 40000,
+              migrationFailed: false,
+            }
+          if (command === 'pick_repository_folder') {
+            if (args.title !== 'Choose a data folder') throw 'folderPicker'
+            return 'D:/BranchHarborData'
+          }
+          if (command === 'schedule_data_move') {
+            pendingPath = args.folder as string | null
+            return
+          }
+          if (command === 'cache_storage') {
+            if (args.clear) cacheBytes = 0
+            return cacheBytes
+          }
+          throw new Error(command)
+        },
+      },
+    })
+  })
+  await page.goto('/#/settings')
+  const storage = page.getByRole('region', { name: 'Data and storage' })
+  await expect(storage).toContainText('C:/Users/Fixture/BranchHarbor')
+  await expect(storage).toContainText('8 KiB')
+  await storage.getByRole('button', { name: 'Change data folder' }).click()
+  await expect(storage.getByRole('status')).toContainText('D:/BranchHarborData')
+  await storage.getByRole('button', { name: 'Cancel move' }).click()
+  await expect(storage.getByRole('status')).toHaveCount(0)
+  await storage.getByRole('button', { name: 'Clear cached data' }).click()
+  await expect(storage).toContainText('8 KiB')
+  await storage.getByRole('button', { name: 'Clear cache', exact: true }).click()
+  await expect(storage.getByRole('status')).toHaveText('Cached data cleared.')
+  await expect(storage.getByText('0 B', { exact: true })).toBeVisible()
+  await page.getByRole('combobox', { name: 'Language' }).selectOption('zh-CN')
+  await page.getByRole('radio', { name: '\u6df1\u8272', exact: true }).check()
+  await page.setViewportSize({ width: 720, height: 760 })
+  await expect(page.locator('#storage-title')).toHaveText('\u6570\u636e\u4e0e\u5b58\u50a8')
+  await page.locator('#storage-title').scrollIntoViewIfNeeded()
+  await page.screenshot({ path: testInfo.outputPath('storage.png') })
+})

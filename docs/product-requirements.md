@@ -87,6 +87,7 @@ data as supplied.
 - Keep credentials out of source, frontend persistent storage, remote URLs, and logs.
 - Treat paths, worktrees, and unpushed changes as device-local state. Automatic configuration or
   credential synchronization is outside initial scope.
+- Show the active SQLite directory, let users relocate it, and provide scoped cache cleanup.
 - Validate installation and runtime behavior on declared OS/architecture targets.
 
 ## First usable version acceptance

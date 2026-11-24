@@ -48,15 +48,20 @@ pub fn run() {
             let root = std::env::var_os("BRANCHHARBOR_DEV_DATA_DIR")
                 .map(std::path::PathBuf::from)
                 .unwrap_or_else(|| root.join("development"));
-            let path = root.join("accounts.sqlite3");
+            let data = app_data::AppData::open(root)?;
+            let path = data.root().join("accounts.sqlite3");
             app.manage(Arc::new(accounts::AccountService::new(path)));
             app.manage(Arc::new(local_git::LocalGit::new(
-                root.join("local-repositories.sqlite3"),
+                data.root().join("local-repositories.sqlite3"),
             )));
+            app.manage(data);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             get_runtime_info,
+            app_data::get_storage_info,
+            app_data::schedule_data_move,
+            accounts::cache_storage,
             accounts::read_recent_github_activity,
             open_discussion_page,
             accounts::list_accounts,
@@ -108,6 +113,7 @@ async fn open_discussion_page(url: String) -> Result<(), &'static str> {
     .map_err(|_| "browserOpenFailed")?
 }
 mod accounts;
+mod app_data;
 mod local_git;
 use std::sync::Arc;
 use tauri::Manager;
