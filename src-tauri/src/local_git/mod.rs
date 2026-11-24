@@ -1,6 +1,7 @@
 pub(super) mod activity;
 pub(super) mod inspection;
 mod process;
+pub(super) mod references;
 #[cfg(test)]
 mod tests;
 
@@ -39,6 +40,9 @@ pub(super) enum GitError {
     InvalidRemote,
     NoChanges,
     BranchChanged,
+    RemoteReferenceChanged,
+    RemoteDefaultBranch,
+    RemoteDefaultUnknown,
 }
 
 #[derive(Debug, Serialize)]

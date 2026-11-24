@@ -9,7 +9,7 @@ const target = computed(() => ({
   name: String(route.params.name),
 }))
 const selected = computed(() =>
-  route.name === 'repository-explorer' ? 'files' : route.params.resource,
+  route.name === 'repository-explorer' ? 'files' : (route.params.references ?? route.params.resource),
 )
 </script>
 
@@ -20,6 +20,14 @@ const selected = computed(() =>
       :class="{ active: selected === 'files' }"
       :aria-current="selected === 'files' ? 'page' : undefined"
       >{{ t('Files') }}</RouterLink
+    >
+    <RouterLink
+      v-for="references in ['branches', 'tags'] as const"
+      :key="references"
+      :to="{ name: 'repository-references', params: { ...target, references } }"
+      :class="{ active: selected === references }"
+      :aria-current="selected === references ? 'page' : undefined"
+      >{{ t(references === 'branches' ? 'Branches' : 'Tags') }}</RouterLink
     >
     <RouterLink
       v-for="resource in ['pulls', 'issues'] as const"

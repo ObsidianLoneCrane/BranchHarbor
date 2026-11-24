@@ -75,11 +75,15 @@ pub fn run() {
             local_git::activity::read_local_activity,
             local_git::inspection::read_local_history,
             local_git::inspection::read_local_tree,
-            local_git::inspection::read_local_blob
+            local_git::inspection::read_local_blob,
+            local_git::references::read_local_references,
+            local_git::references::read_remote_references,
+            local_git::references::delete_remote_reference
         ])
         .run(tauri::generate_context!())
         .expect("Failed to start BranchHarbor");
 }
+
 mod accounts;
 mod local_git;
 use std::sync::Arc;

@@ -91,3 +91,40 @@
 .local-repository-link span {
   color: var(--muted);
 }
+
+.reference-list > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.reference-list code,
+.reference-list small {
+  color: var(--muted);
+}
+
+.reference-list .button {
+  margin-inline-start: auto;
+}
+
+.reference-search {
+  width: min(100%, 16rem);
+}
+
+.reference-controls {
+  align-items: end;
+}
+
+.reference-confirm {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.reference-filters .button[aria-pressed='true'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}

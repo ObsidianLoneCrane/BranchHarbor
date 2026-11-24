@@ -35,6 +35,38 @@ export interface LocalRemote {
   pushUrl: string | null
 }
 
+export interface GitReference {
+  kind: 'branch' | 'tag'
+  name: string
+  oid: string
+  targetOid: string | null
+}
+
+export interface RemoteReferences {
+  url: string
+  defaultBranch: string | null
+  items: GitReference[]
+}
+
+export function readLocalReferences(id: number): Promise<GitReference[]> {
+  return invoke('read_local_references', { id })
+}
+
+export function readRemoteReferences(
+  id: number,
+  remote: string,
+  push: boolean,
+): Promise<RemoteReferences> {
+  return invoke('read_remote_references', { id, remote, push })
+}
+
+export function deleteRemoteReference(
+  id: number,
+  request: Pick<GitReference, 'kind' | 'name' | 'oid'> & { remote: string; url: string },
+): Promise<void> {
+  return invoke('delete_remote_reference', { id, request })
+}
+
 export interface LocalSnapshot {
   branch: string | null
   head: string | null
@@ -95,6 +127,12 @@ const errors: Record<string, string> = {
     'Review the remote address. Use a single HTTPS, SSH, or absolute filesystem target without embedded credentials.',
   noChanges: 'The selected change is no longer available, or there are no staged changes.',
   branchChanged: 'The current branch changed. Refresh and confirm the target again.',
+  remoteReferenceChanged:
+    'The remote reference changed or disappeared. Refresh and confirm the target again.',
+  remoteDefaultBranch: 'The default branch cannot be deleted here.',
+  remoteDefaultUnknown:
+    'Git could not identify the remote default branch. Branch deletion is unavailable.',
+  remoteEndpointChanged: 'The remote endpoint changed. Refresh references and try again.',
 }
 
 export function localGitError(error: unknown): string {

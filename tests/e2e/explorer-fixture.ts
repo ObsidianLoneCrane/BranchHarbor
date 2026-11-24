@@ -101,6 +101,13 @@ export async function installExplorerFixture(
               defaultBranch: 'main',
               archived: false,
             }
+          else if (query.kind === 'tags')
+            data = {
+              kind: 'tags',
+              page: query.page,
+              hasNext: query.page === 1,
+              items: [{ name: query.page === 1 ? 'v0.1.0' : 'v0.2.0', commit: { sha: sha('a') } }],
+            }
           else if (query.kind === 'branches')
             data = {
               kind: 'branches',

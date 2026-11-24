@@ -108,12 +108,23 @@ reading a history with diverging branches and a merge, and switching languages a
 views without losing the current task. Validate light and dark themes, keyboard navigation, and
 readability at the supported window sizes.
 
-## Stage 5: collaboration and distribution - deferred
+## Stage 5: branch and tag management - implemented, acceptance pending
 
-- Add PR/issue creation, comments, state changes, and supported merge workflows.
-- Add conflict assistance.
-- Implement release builds, signing, update channels, and migration checks.
-- Verify clean installation and upgrades for each declared distribution target.
+- Browse local branches and tags with their object IDs, and browse paginated GitHub and Gitee branch
+  and tag lists.
+- Query live references for a configured remote. Confirm and delete one remote branch or tag at a
+  time with a default-branch check and an expected-object lease.
+- Keep pull requests and issues read-only. Open their platform pages in the system browser for
+  collaboration.
 
-Release infrastructure may arrive earlier through focused PRs. Public readiness still depends on
-target validation and a complete, verified asset set.
+Acceptance includes same-named branches and tags, separate fetch and push endpoints, changed or
+protected references, and live validation through GitHub and Gitee test repositories.
+
+## Stage 6: release acceptance and distribution - planned
+
+- Complete authenticated native acceptance and test clean installation, startup, and upgrades on
+  each intended target.
+- Verify every candidate asset, including the macOS x64 DMG, signatures, notarization where
+  applicable, and checksums.
+- Publish the first version using the [release workflow](branching-and-releases.md). Automatic
+  updates can follow in a separate increment.

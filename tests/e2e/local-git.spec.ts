@@ -1,5 +1,88 @@
 import { expect, test } from '@playwright/test'
 
+test('uses the confirmed push endpoint and refreshes remote tags after deletion', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const repository = { id: 1, path: 'C:/Projects/Example' }
+    const fetchUrl = 'https://github.com/example/read.git'
+    const pushUrl = 'https://github.com/example/write.git'
+    const main = { name: 'main', kind: 'branch', oid: 'a'.repeat(40), targetOid: null }
+    const tag = { name: 'main', kind: 'tag', oid: 'b'.repeat(40), targetOid: main.oid }
+    let deleted = false
+    Object.defineProperty(window, 'isTauri', { value: true })
+    Object.defineProperty(window, '__TAURI_INTERNALS__', {
+      value: {
+        async invoke(command: string, args: Record<string, unknown>) {
+          if (command === 'list_accounts') return []
+          if (command === 'list_local_repositories') return [repository]
+          if (command === 'read_local_repository')
+            return {
+              branch: 'main',
+              head: 'aaaaaaa',
+              upstream: null,
+              ahead: null,
+              behind: null,
+              branches: ['main'],
+              author: null,
+              changes: [],
+              remotes: [{ name: 'origin', fetchUrl, pushUrl }],
+            }
+          if (command === 'read_local_references') return [main, tag]
+          if (command === 'read_remote_references')
+            return {
+              url: args.push ? pushUrl : fetchUrl,
+              defaultBranch: 'main',
+              items: deleted ? [main] : [main, tag],
+            }
+          if (command === 'delete_remote_reference') {
+            const request = args.request as Record<string, unknown>
+            if (
+              args.id !== 1 ||
+              request.remote !== 'origin' ||
+              request.url !== pushUrl ||
+              request.kind !== 'tag' ||
+              request.name !== tag.name ||
+              request.oid !== tag.oid
+            )
+              throw 'invalidInput'
+            deleted = true
+            return
+          }
+          throw 'invalidInput'
+        },
+      },
+    })
+  })
+  await page.goto('/#/repositories/local/1?task=references')
+  const local = page.getByRole('region', { name: 'Local references', exact: true })
+  await expect(local).toContainText('Current branch')
+  await local.getByRole('button', { name: 'Tags', exact: true }).click()
+  await expect(local).toContainText('main')
+  await page.getByRole('link', { name: 'Remotes', exact: true }).click()
+  const remote = page.getByRole('region', { name: 'Remote references', exact: true })
+  const endpoint = remote.getByRole('combobox', { name: 'Remote endpoint' })
+  const refresh = remote.getByRole('button', { name: 'Refresh references' })
+  await endpoint.selectOption('fetch')
+  await refresh.click()
+  await remote.getByRole('button', { name: 'Tags', exact: true }).click()
+  await expect(remote.getByRole('button', { name: 'Delete remote tag' })).toBeDisabled()
+  await endpoint.selectOption('push')
+  await refresh.click()
+  await expect(remote.getByRole('button', { name: 'Delete remote branch' })).toBeDisabled()
+  await remote.getByRole('button', { name: 'Tags', exact: true }).click()
+  await remote.getByRole('button', { name: 'Delete remote tag' }).click()
+  const confirmation = remote.getByRole('group', { name: 'Confirm remote reference deletion' })
+  await expect(confirmation).toContainText('refs/tags/main')
+  await expect(confirmation).toContainText('https://github.com/example/write.git')
+  await confirmation.getByRole('button', { name: 'Confirm deletion' }).click()
+  await expect(remote.getByText('Remote reference deleted.')).toBeVisible()
+  await expect(remote.getByText('No matching references.')).toBeVisible()
+  await page.getByRole('link', { name: 'References', exact: true }).click()
+  await local.getByRole('button', { name: 'Tags', exact: true }).click()
+  await expect(local).toContainText('main')
+})
+
 test('imports a working tree, commits staged changes, and pushes to an explicit target', async ({
   page,
 }) => {

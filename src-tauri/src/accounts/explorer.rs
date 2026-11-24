@@ -21,6 +21,7 @@ pub struct ExploreQuery {
 pub enum ExploreOperation {
     Detail,
     Branches { page: u32 },
+    Tags { page: u32 },
     Branch { branch: String },
     Directory { sha: String },
     File { sha: String, size: u64 },
@@ -55,6 +56,11 @@ pub enum ExploreData {
         page: u32,
         has_next: bool,
     },
+    Tags {
+        items: Vec<Tag>,
+        page: u32,
+        has_next: bool,
+    },
     Branch {
         name: String,
         commit_sha: String,
@@ -83,6 +89,12 @@ pub struct Branch {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BranchCommit {
     pub sha: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Tag {
+    pub name: String,
+    pub commit: BranchCommit,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -183,7 +195,9 @@ impl ExploreQuery {
             return Err(input_error());
         }
         match &self.operation {
-            ExploreOperation::Branches { page } if *page == 0 || *page > 10000 => {
+            ExploreOperation::Branches { page } | ExploreOperation::Tags { page }
+                if *page == 0 || *page > 10000 =>
+            {
                 return Err(input_error())
             }
             ExploreOperation::Branch { branch }
@@ -278,6 +292,33 @@ impl HttpHosting {
                         name: raw.name,
                         commit_sha: raw.commit.sha,
                         tree_sha: raw.commit.commit.tree.sha,
+                    })
+                }
+                ExploreOperation::Tags { page } => {
+                    let (items, headers): (Vec<Tag>, _) = self.request(
+                        account.provider,
+                        token,
+                        &format!("{prefix}/tags"),
+                        &[
+                            ("page".into(), page.to_string()),
+                            ("per_page".into(), "30".into()),
+                        ],
+                    )?;
+                    if items
+                        .iter()
+                        .any(|item| item.name.is_empty() || !valid_sha(&item.commit.sha))
+                    {
+                        return Err(invalid_response());
+                    }
+                    let has_next = headers
+                        .get("link")
+                        .and_then(|value| value.to_str().ok())
+                        .map(|value| value.contains("rel=\"next\""))
+                        .unwrap_or(items.len() >= 30);
+                    Ok(ExploreData::Tags {
+                        items,
+                        page: *page,
+                        has_next,
                     })
                 }
                 ExploreOperation::Directory { sha } => {

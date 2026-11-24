@@ -4,7 +4,9 @@ The local repository opens to **Changes**. Use task tabs for **Files**, **Histor
 and **Remotes**. Files opens committed content at HEAD and loads directories as they expand. History
 draws up to 150 commits in topological order from the local Git object database, including
 last-fetched remote refs. Selecting a commit shows its message, author, date, hash, and parents.
-Open **Synchronize** in Remotes to confirm the remote and branch before pushing.
+**References** lists local branches and tags. It shows the referenced object ID and the target
+object ID when Git supplies one for an annotated tag. Open **Synchronize** in Remotes to confirm the
+remote and branch before pushing.
 
 Changes, Files, and History share a two-pane layout in wide windows. Drag the divider or focus it
 and use the arrow keys. In narrow windows, selecting an item opens its detail. The back button
@@ -59,6 +61,19 @@ local branch to the named remote branch without forcing it. The workspace refres
 operation, including failures. Git commands time out after three minutes. After a timeout, refresh
 and check both the local and remote state before retrying.
 
+### Live remote references
+
+Open **Remotes**, select a named remote and its **Push** or **Fetch** endpoint, and choose **Refresh
+references**. The list uses the refs advertised by that endpoint when queried. It supports branch
+and tag filters without fetching objects or changing local refs.
+
+To delete a single remote ref, use the push endpoint or a fetch endpoint with the same URL. The
+confirmation shows its full ref name, endpoint, and expected object ID. The app rechecks the
+configured push URL, the advertised ref, and the remote's default branch before sending a
+lease-guarded deletion. When the remote does not advertise a default branch, only tag deletion is
+available. The remote applies its own permission checks and protection rules. Local branches and
+tags remain available. Use your normal fetch and prune workflow to update remote-tracking refs.
+
 ## Storage and validation
 
 The app stores canonical working-tree paths in `local-repositories.sqlite3` under its application
@@ -77,3 +92,9 @@ Rust command skips the manual credential-store test. The Git workflow used a loc
 the browser tests used IPC fixtures. The Debug executable opened the native folder picker, returned
 to the empty list on cancel, and imported a disposable Git working tree on confirmation. Live
 private GitHub and Gitee transports require separate validation.
+
+Stage 5 validation on Windows passed 51 frontend tests, 43 Rust tests, and 30 Edge tests. Both
+Windows executables listed local and live remote refs and deleted same-named branches and tags
+independently on a disposable bare Git remote. The Rust test also verified distinct fetch and push
+URLs, a stale object ID, and a configured push URL rewrite. Authenticated GitHub and Gitee
+repository tests remain pending.

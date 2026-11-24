@@ -20,6 +20,7 @@ export interface TreeEntry {
 export type Operation =
   | { kind: 'detail' }
   | { kind: 'branches'; page: number }
+  | { kind: 'tags'; page: number }
   | { kind: 'branch'; branch: string }
   | { kind: 'directory'; sha: string }
   | { kind: 'file'; sha: string; size: number }
@@ -34,6 +35,7 @@ export type ExplorerData =
       archived: boolean
     }
   | { kind: 'branches'; items: Branch[]; page: number; hasNext: boolean }
+  | { kind: 'tags'; items: Pick<Branch, 'name' | 'commit'>[]; page: number; hasNext: boolean }
   | { kind: 'branch'; name: string; commitSha: string; treeSha: string }
   | { kind: 'directory'; sha: string; items: TreeEntry[]; truncated: boolean }
   | {
@@ -58,7 +60,8 @@ export async function explore<K extends Operation['kind']>(
     response.accountId !== target.accountId ||
     response.owner !== target.owner ||
     response.name !== target.name ||
-    response.data.kind !== operation.kind
+    response.data.kind !== operation.kind ||
+    ('page' in operation && (!('page' in response.data) || response.data.page !== operation.page))
   )
     throw new AccountError('invalidResponse')
   return response.data as Data<K>

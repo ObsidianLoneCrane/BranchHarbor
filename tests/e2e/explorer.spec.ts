@@ -145,3 +145,18 @@ test('honors explorer cooldown and stays within a narrow viewport', async ({ pag
   await expect(page.getByRole('region', { name: 'File source' })).toContainText('Workspace')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
+test('browses platform branches and paginated tags', async ({ page }) => {
+  await installExplorerFixture(page)
+  for (const repository of [
+    'github:github.com:1/alice/workspace',
+    'gitee:gitee.com:10/jane/workspace',
+  ]) {
+    await page.goto(`/#/repositories/${repository}/branches`)
+    await expect(page.getByRole('region', { name: 'Branches' })).toContainText('feature/preview')
+    await page.getByRole('link', { name: 'Tags', exact: true }).click()
+    const tags = page.getByRole('region', { name: 'Tags' })
+    await expect(tags).toContainText('v0.1.0')
+    await tags.getByRole('button', { name: 'Next' }).click()
+    await expect(tags).toContainText('v0.2.0')
+  }
+})
