@@ -97,7 +97,30 @@ pre,
 .app-bar .brand > span {
   display: inline;
 }
-.app-navigation {
+.app-frame-desktop {
+  --window-titlebar-height: 36px;
+  --workspace-toolbar: 50px;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+.app-frame-desktop > .workspace-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.app-frame-desktop > .app-header {
+  position: relative;
+  flex-shrink: 0;
+}
+.app-frame-desktop .app-bar {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto;
+  gap: 12px;
+}
+.app-frame-desktop .app-navigation {
   grid-area: 1 / 1;
 }
 .window-titlebar {
@@ -230,6 +253,9 @@ pre,
   top: var(--workspace-toolbar);
   z-index: 4;
   background: var(--canvas);
+}
+.app-frame-desktop .repository-task-bar {
+  top: 0;
 }
 .repository-heading {
   align-items: flex-start;

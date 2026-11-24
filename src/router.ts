@@ -3,6 +3,11 @@ import { useAccounts } from './composables/accounts'
 import { prepareDiscussionList } from './composables/reader'
 
 export function createAppRouter(history: RouterHistory = createWebHashHistory()) {
+  const desktopScrollPositions = new Map<number, { path: string; top: number }>()
+  let activePosition: number | undefined
+  const desktopScrollArea = () =>
+    document.querySelector<HTMLElement>('.app-frame-desktop > .workspace-scroll')
+
   const router = createRouter({
     history,
     routes: [
@@ -61,7 +66,29 @@ export function createAppRouter(history: RouterHistory = createWebHashHistory())
         meta: { title: 'Page not found' },
       },
     ],
-    scrollBehavior: (to, from, saved) => saved ?? (to.path === from.path ? false : { top: 0 }),
+    scrollBehavior(to, from, saved) {
+      const area = desktopScrollArea()
+      if (!area) return saved ?? (to.path === from.path ? false : { top: 0 })
+
+      if (saved && activePosition !== undefined) {
+        const position = desktopScrollPositions.get(activePosition)
+        area.scrollTop = position?.path === to.fullPath ? position.top : 0
+      } else if (to.path !== from.path) {
+        area.scrollTop = 0
+      }
+      return false
+    },
+  })
+  router.beforeResolve((_to, from) => {
+    const area = desktopScrollArea()
+    if (area && activePosition !== undefined) {
+      desktopScrollPositions.set(activePosition, { path: from.fullPath, top: area.scrollTop })
+    }
+  })
+  router.afterEach((_to, _from, failure) => {
+    if (failure) return
+    const position = history.state.position
+    activePosition = typeof position === 'number' ? position : undefined
   })
   router.beforeEach((to, from) => {
     if (to.name !== 'repository-reader' || from.name === 'repository-reader' || to.params.number)

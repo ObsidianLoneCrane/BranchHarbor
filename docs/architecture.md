@@ -9,7 +9,8 @@ are held in memory.
 
 ## Implemented foundation
 
-- Tauri 2 and Rust own the desktop window and `get_runtime_info` command.
+- Tauri 2 and Rust own the desktop window and `get_runtime_info` command. Windows uses a Vue title
+  bar with scoped permissions for dragging, minimizing, maximizing or restoring, and closing.
 - Vue 3, TypeScript, Vite, and Vue Router provide four primary views and a lazy repository detail
   route using hash history. The repository list is kept alive in-session to restore filters/pages.
 - Shared CSS tokens provide light/dark themes; a Vue composable persists only appearance in local
