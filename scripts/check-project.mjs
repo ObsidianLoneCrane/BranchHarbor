@@ -8,7 +8,7 @@ const files = execFileSync(
   { encoding: 'utf8' },
 )
   .split('\0')
-  .filter(Boolean)
+  .filter((file) => file && existsSync(file))
 const errors = []
 let links = 0
 for (const file of files) {
