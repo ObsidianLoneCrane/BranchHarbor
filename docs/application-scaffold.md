@@ -26,8 +26,8 @@ test counts, screenshots, limits, and live-validation requirements.
 
 The [PR/Issue reader](pr-issue-reader.md) adds a lazy discussion route, repository task navigation,
 state-filtered lists, details, and paginated general comments. Its validation record supersedes the
-foundation-only test counts below. The [contribution dashboard](contribution-sources.md) adds a
-GitHub calendar, a Gitee public event sample, daily activity, and cached provider data.
+foundation-only test counts below. The [activity timeline](contribution-sources.md) combines local
+commits and public platform events by local date.
 
 The [local Git workspace](local-git.md) adds desktop repository registration, changes, commits,
 branches, and named-remote synchronization. Browser preview disables these native actions.
@@ -133,29 +133,34 @@ controls, panels, and pages. Light and dark themes use slate surfaces with teal 
 for additions, and red for removals. Diff prefixes and selection indicators remain available in both
 themes.
 
-The desktop window opens at 1080 × 700 logical pixels and can shrink to 720 × 560. Settings has an
-inset language row above the theme controls. The language menu opens when the user activates the
-control. Dropdowns use the browser's select behavior with theme colors when the webview supports
-customizable selects. Pages, scrollable panels, and dropdown menus share arrow-free scrollbars in
-WebView2. The track is transparent, and each theme uses a translucent slate-blue thumb that gains
-contrast on hover or drag. Forced-colors mode uses the system scrollbar.
+The desktop window opens at 1080 × 700 logical pixels and can shrink to 720 × 560. On Windows, the
+title bar uses the workspace font and follows Light, Dark, or System appearance. Drag the title area
+to move the window or double-click it to maximize or restore it. The window buttons provide
+minimize, maximize or restore, and close. Page scrolling starts below the title bar and main
+navigation. macOS and Linux use their native title bars.
 
-The top navigation uses one row at desktop widths and two rows in narrow windows. Home puts recent
-repositories first and shows today's local commits beside them when there is space. Repository rows
-share a 20 px content inset with the panel heading. Each row opens its repository, with the name
-above the path. The full path is available on hover. Provider summaries below the work panels lead
-to Activity for the full calendar or event sample.
+Settings has an inset language row above the theme controls. The language menu opens when the user
+activates the control. Dropdowns use the browser's select behavior with theme colors when the
+webview supports customizable selects. Pages, scrollable panels, and dropdown menus share arrow-free
+scrollbars in WebView2. The track is transparent, and each theme uses a translucent slate-blue thumb
+that gains contrast on hover or drag. Forced-colors mode uses the system scrollbar.
+
+The top navigation uses one row at desktop widths and two rows in narrow windows. Home shows
+frequently used repositories next to recent activity when there is space, with account summaries
+below. Repositories uses a single catalog with a modal for import, clone, and creation.
 
 The layout applies the [Fluent 2 spacing guidance](https://fluent2.microsoft.design/layout),
 [Impeccable](https://github.com/pbakaus/impeccable) principles for reducing visual noise, and the
 [Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines) for long text,
 keyboard focus, and responsive layout.
 
-The Home screenshots use sample repositories and commits. Settings uses the browser preview.
+The following previews show the Windows layout with sample accounts, repositories, and activity.
 
 ![Home in light mode](images/home-light.png)
 
 ![Home in dark mode](images/home-dark.png)
+
+![Activity grouped by local date](images/activity-light.png)
 
 ![Settings in light mode](images/settings-light.png)
 
