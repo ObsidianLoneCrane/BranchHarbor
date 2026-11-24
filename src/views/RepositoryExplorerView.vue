@@ -19,6 +19,7 @@ import type { TreeEntry } from '../lib/explorer'
 import RepositoryTabs from '../components/RepositoryTabs.vue'
 import WorkspaceSplit from '../components/WorkspaceSplit.vue'
 import { t } from '../lib/locale'
+import { recordRepositoryVisit } from '../composables/workspaceRepositories'
 
 const SourcePreview = defineAsyncComponent(() => import('../components/SourcePreview.vue'))
 const route = useRoute()
@@ -105,6 +106,18 @@ const target = {
   name: String(route.params.name),
 }
 void explorer.open(target)
+const visitKey = computed(() => {
+  const provider = account.value?.provider
+  const id = state.detail?.id
+  return provider && id ? `remote:${provider}:${id}` : ''
+})
+watch(
+  visitKey,
+  (key) => {
+    if (key) recordRepositoryVisit(key)
+  },
+  { immediate: true },
+)
 onUnmounted(explorer.dispose)
 function kind(entry: TreeEntry) {
   return entry.mode === '120000'
@@ -123,9 +136,7 @@ function size(value: number | null) {
 </script>
 
 <template>
-  <RouterLink
-    :to="{ name: 'repositories', query: { source: 'remote' } }"
-    class="text-link explorer-back"
+  <RouterLink :to="{ name: 'repositories' }" class="text-link explorer-back"
     ><ArrowLeft :size="14" aria-hidden="true" />{{ t('Back to repositories') }}</RouterLink
   >
   <div class="page-heading explorer-heading">

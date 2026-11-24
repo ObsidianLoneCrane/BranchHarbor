@@ -11,7 +11,7 @@ read-only browsing.
 2. Open **Settings > Connected accounts > Add account** for GitHub or Gitee.
 3. Paste a personal access token and select **Verify and connect**. The app calls the provider's
    current-user API, then saves the verified identity and credential separately.
-4. Open **Repositories**, choose an account, and adjust platform, ownership, or visibility filters.
+4. Open **Repositories**, search the catalog, and choose a source if needed.
 5. Use **Update token** to replace an expired token for the same account, or **Disconnect** to
    remove the local connection and its saved credential. Disconnect requires inline confirmation.
 
@@ -36,11 +36,9 @@ query parameters; the header-based authenticated path still needs verification w
 own account. The app intentionally has no URL-token fallback. Mock tests prove the outgoing request
 format, not acceptance of a real token by Gitee.
 
-The repository list requests 30 items per page, sorted by latest update. It exposes owner,
-visibility, description, language, default branch, update time, and archived status where returned.
-**All accessible** includes collaboration/organization membership; **Owned by account** requests
-owner affiliation. Gitee additionally includes enterprise membership. The adapters use `affiliation`
-and `visibility` together without the incompatible `type` parameter.
+The catalog requests 30 accessible repositories per provider page, sorted by latest update.
+Accessible repositories include collaboration and organization memberships. Gitee also includes
+enterprise membership. The catalog links registered working trees to matching provider repositories.
 
 The list is scoped to the token, not a guaranteed inventory of every repository visible on the
 provider website. A successful response cannot prove that all private repositories were authorized;
@@ -90,8 +88,10 @@ needed. Credentials and account metadata are local to each device and are not sy
   per-account cooldown while the view is mounted; without timing metadata, the UI uses 60 seconds.
 - Repository filters clear old results immediately. Request identities discard late responses after
   account/filter changes or disconnection, preventing another account's results from appearing.
-- Initial loading, empty authorized results, and failed requests have distinct states. Refresh is
-  manual; repository pages are not persistently cached or fetched in the background.
+- Initial loading, empty authorized results, and failed requests have distinct states. The catalog
+  uses a 40-page memory cache. Entries are fresh for one minute and eligible for stale display for
+  up to ten minutes. Catalog refresh runs on demand and on foreground return when the first page
+  expires.
 
 ## Validation record
 
@@ -142,7 +142,7 @@ contribution coverage is still unresolved.
 These screenshots use synthetic account/repository fixtures from the browser test suite. They
 illustrate the implemented interface and do not demonstrate live provider authorization.
 
-![Repository list with synthetic account data](images/repositories-fixture.png)
+![Combined catalog with Local, GitHub, and Gitee repositories](images/repositories-fixture.png)
 
 ![Saved synthetic platform accounts](images/accounts-fixture.png)
 

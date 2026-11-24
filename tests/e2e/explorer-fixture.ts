@@ -65,7 +65,7 @@ export async function installExplorerFixture(
               accessNotice: 'Synthetic repositories only.',
               items: [
                 {
-                  id: `${account.provider}:${account.host}:44`,
+                  id: `${account.provider}:${account.host}:${query.page}`,
                   name,
                   fullName: `${account.login}/${name}`,
                   description: 'Synthetic repository for explorer checks.',

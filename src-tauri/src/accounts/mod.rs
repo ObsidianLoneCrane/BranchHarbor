@@ -153,6 +153,72 @@ impl AccountService {
 }
 
 #[tauri::command]
+pub(crate) async fn read_recent_github_activity(
+    service: tauri::State<'_, Arc<AccountService>>,
+    account_id: String,
+    page: u32,
+) -> Result<Vec<RecentEvent>> {
+    if !(1..=10).contains(&page) {
+        return Err(AppError::new(
+            "invalidInput",
+            "The event page is out of range.",
+        ));
+    }
+    let service = Arc::clone(service.inner());
+    tauri::async_runtime::spawn_blocking(move || {
+        let (account, token) = service.authorization(&account_id)?;
+        if account.provider != Provider::Github {
+            return Err(AppError::new("invalidInput", "Select a GitHub account."));
+        }
+        let (events, _): (Vec<RawEvent>, _) = HttpHosting::new().request_limited(
+            account.provider,
+            &token,
+            &format!("users/{}/events/public", explorer::encode(&account.login)),
+            &[
+                ("page".into(), page.to_string()),
+                ("per_page".into(), "30".into()),
+            ],
+            2 * 1024 * 1024,
+        )?;
+        Ok(events
+            .into_iter()
+            .take(30)
+            .map(|event| RecentEvent {
+                id: event.id,
+                event_type: event.event_type,
+                created_at: event.created_at,
+                repository: event.repo.name,
+            })
+            .collect())
+    })
+    .await
+    .map_err(|_| AppError::storage())?
+}
+
+#[derive(serde::Deserialize)]
+struct RawEvent {
+    id: String,
+    #[serde(rename = "type")]
+    event_type: String,
+    created_at: String,
+    repo: EventRepository,
+}
+
+#[derive(serde::Deserialize)]
+struct EventRepository {
+    name: String,
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct RecentEvent {
+    id: String,
+    event_type: String,
+    created_at: String,
+    repository: String,
+}
+
+#[tauri::command]
 pub async fn list_accounts(service: tauri::State<'_, Arc<AccountService>>) -> Result<Vec<Account>> {
     let service = service.inner().clone();
     tauri::async_runtime::spawn_blocking(move || service.list())

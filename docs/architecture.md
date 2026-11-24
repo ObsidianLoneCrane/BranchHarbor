@@ -3,8 +3,9 @@
 Status: the application shell, PAT account connections, SQLite account metadata, native credential
 storage, paginated provider discovery, repository exploration, and read-only PR/Issue discussions
 are implemented. The [contribution source preview](contribution-sources.md) reads GitHub GraphQL
-counts and Gitee public events through the Rust account service. Git workflows, durable repository
-caches, and the Home contribution charts remain planned.
+counts and Gitee public events through the Rust account service. Local Git workflows and a unified
+repository catalog and activity timeline are implemented. Remote repository and discussion caches
+are held in memory.
 
 ## Implemented foundation
 
@@ -33,9 +34,9 @@ cooldown, and stale-request guards.
 `AccountService`. Its four commands are `list_accounts`, `connect_account`, `disconnect_account`,
 and `list_repositories`. A fifth command, `explore_repository`, handles typed read-only repository
 operations through the same account/credential boundary. Blocking HTTP, vault, and SQLite work runs
-on Tauri's blocking worker pool. A service mutex serializes account operations, including network
-requests, to avoid credential replacement/removal races; another account's request can wait behind
-an active request.
+on Tauri's blocking worker pool. Account changes and credential snapshots use a service mutex.
+Read-only discovery, exploration, and discussion calls release the mutex before sending requests.
+The transport reuses a short-lived connection pool.
 
 `read_collaboration` is the sixth command. `accounts/reader.rs` normalizes provider-specific issue
 identifiers, states, and discussion endpoints through the same native transport and credential
@@ -61,10 +62,14 @@ by account and optional GitHub UTC day. Cache reads use SQLite without accessing
 Credential replacement and account deletion invalidate the account's cache in the account
 transaction. Version 1 clients cannot open the migrated database.
 
-The local Git service records working-tree access times in its own database. A background command
-uses the same registered-root checks and Git CLI runner to read bounded UTC-day commit history. The
-Vue dashboard displays distinct provider and local datasets and shares a contribution refresh
-composable with Activity.
+The local Git service records working-tree access times in its own database. A worker command uses
+registered-root checks and the Git CLI runner to read recent commits. The timeline merges local
+commit timestamps with bounded GitHub and Gitee public event feeds. Vue groups the merged data using
+the device's time zone. The native contribution adapters remain available for API research.
+
+The UI reuses bounded memory caches across navigation. Account changes invalidate them, and expired
+data loads when entering a view or returning to the foreground. There is no continuous background
+polling.
 
 ## Repository workspace
 

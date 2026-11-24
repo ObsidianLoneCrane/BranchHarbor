@@ -73,10 +73,10 @@ verification on the target platforms. See the [local Git guide](local-git.md).
 
 ## Stage 4: personal overview and first usable version - implemented, acceptance pending
 
-- Home shows independent GitHub calendar and Gitee public event cards, recent local repositories,
-  and a UTC-day local commit summary.
-- Activity shows GitHub daily counts, a UTC-day filter for the Gitee event sample, and local commits
-  from registered working trees. Provider refreshes persist account-scoped data for offline reads.
+- Home shows frequently used repositories, recent activity across sources, and compact account
+  summaries.
+- Activity combines public provider events and local commits by date. The Gitee event sample is
+  available offline after a successful refresh.
 - The existing PR and Issue reader provides lists, details, and paginated discussion comments.
 - First-usable-version acceptance still requires authenticated native workflows on target platforms.
   The Gitee calendar remains unavailable. See the [contribution guide](contribution-sources.md).
@@ -91,8 +91,7 @@ top to leave more width for repository content. Inter is bundled for offline ren
 
 The first implementation introduces task tabs for local repositories, expandable local and remote
 directory trees, a local commit graph, and a persisted language switch. Home surfaces recent work
-and contribution summaries. Activity holds the full calendar and switches between platform data and
-local history.
+and compact provider connection status. Activity groups its unified timeline by local date.
 
 - Refine the visual hierarchy, typography, spacing, and light and dark themes across the existing
   desktop views. Check readability in both English and Simplified Chinese.
@@ -119,6 +118,14 @@ readability at the supported window sizes.
 
 Acceptance includes same-named branches and tags, separate fetch and push endpoints, changed or
 protected references, and live validation through GitHub and Gitee test repositories.
+
+## Pre-release workspace optimization - implemented
+
+- Reuse recently viewed PR and Issue data and load details and comments in parallel. Refresh stale
+  data when the relevant view returns to the foreground.
+- Combine local, GitHub, and Gitee repositories in one catalog with a dialog for add operations.
+  Show recent activity grouped by date and keep source, repository, and event type filters.
+- Measure CPU, memory, and power over extended idle and active sessions during release acceptance.
 
 ## Stage 6: release acceptance and distribution - planned
 

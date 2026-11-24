@@ -21,10 +21,13 @@ async function openApp(path = '/') {
 }
 
 describe('application navigation', () => {
-  it('keeps unavailable platform contributions separate without inventing counts', async () => {
+  it('shows equivalent connection summaries for both platforms', async () => {
     const { wrapper } = await openApp()
-    expect(wrapper.find('[aria-label="GitHub contributions"]').text()).toContain('Not connected')
-    expect(wrapper.find('[aria-label="Gitee contributions"]').text()).toContain('Not connected')
+    const accounts = wrapper.find('[aria-label="Connected accounts"]')
+    expect(accounts.findAll('.platform-summary').map((row) => row.text())).toEqual([
+      expect.stringMatching(/GitHub.*Not connected/),
+      expect.stringMatching(/Gitee.*Not connected/),
+    ])
     expect(wrapper.text()).not.toContain('0 contributions')
     wrapper.unmount()
   })
@@ -33,9 +36,7 @@ describe('application navigation', () => {
     const { wrapper, router } = await openApp()
     await wrapper.get('nav a[href="/repositories"]').trigger('click')
     await vi.waitFor(() => expect(wrapper.get('h1').text()).toBe('Repositories'))
-    expect(
-      wrapper.findAll('button[disabled]').some((button) => button.text() === 'New repository'),
-    ).toBe(true)
+    expect(wrapper.get('button[aria-haspopup="dialog"]').text()).toBe('Add repository')
     await router.push('/activity')
     await flushPromises()
     expect(wrapper.get('h1').text()).toBe('Activity')

@@ -153,9 +153,7 @@ function branch(value: BranchRef | null) {
 </script>
 
 <template>
-  <RouterLink
-    :to="{ name: 'repositories', query: { source: 'remote' } }"
-    class="text-link explorer-back"
+  <RouterLink :to="{ name: 'repositories' }" class="text-link explorer-back"
     ><ArrowLeft :size="14" aria-hidden="true" />{{ t('Back to repositories') }}</RouterLink
   >
   <div class="page-heading explorer-heading">

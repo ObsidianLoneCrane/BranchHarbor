@@ -5,14 +5,13 @@ test('workspace navigation, theme persistence, and unavailable actions', async (
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Overview')
-  await expect(page.getByRole('region', { name: 'GitHub contributions' })).toContainText(
-    'Not connected',
-  )
-  await expect(page.getByRole('region', { name: 'Gitee contributions' })).toContainText(
-    'Not connected',
-  )
+  const accounts = page.getByRole('region', { name: 'Connected accounts' })
+  await expect(accounts).toContainText(/GitHub.*Not connected/)
+  await expect(accounts).toContainText(/Gitee.*Not connected/)
   await page.getByRole('link', { name: 'Repositories', exact: true }).click()
+  await page.getByRole('button', { name: 'Add repository', exact: true }).click()
   await expect(page.getByRole('button', { name: 'New repository' })).toBeDisabled()
+  await page.keyboard.press('Escape')
   await page.getByRole('link', { name: 'Activity', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Activity')
   await page.goBack()

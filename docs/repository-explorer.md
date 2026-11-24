@@ -25,7 +25,7 @@ provider authorization coverage.
    directory** to navigate upward. The branch selector has independent page controls, 30 entries per
    page; a selected branch remains visible when it is outside the current branch page.
 5. **Refresh** reloads metadata and the selected branch at its latest commit, returning to the root.
-   **Back to repositories** restores the in-session list account, filters, and page. Reloading the
+   **Back to repositories** restores the in-session catalog filters and loaded pages. Reloading the
    app does not preserve explorer navigation or list filters.
 
 The layout focuses on a branch selector, directory entries, and one file preview. At narrow widths,

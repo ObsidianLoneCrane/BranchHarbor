@@ -23,6 +23,8 @@ import WorkspaceSplit from '../components/WorkspaceSplit.vue'
 import LocalReferences from '../components/LocalReferences.vue'
 import RemoteReferences from '../components/RemoteReferences.vue'
 import { t } from '../lib/locale'
+import { invalidateLocalCatalog, recordRepositoryVisit } from '../composables/workspaceRepositories'
+import { invalidateLocalActivity } from '../composables/workspaceActivity'
 
 const route = useRoute()
 const router = useRouter()
@@ -142,6 +144,7 @@ async function load(target: number) {
     if (id.value !== target) return
     if (!found) throw 'notRegistered'
     repository.value = found
+    recordRepositoryVisit(`local:${target}`)
     await refresh(target)
   } catch (error) {
     if (id.value === target) alert.value = localGitError(error)
@@ -180,6 +183,8 @@ async function perform(operation: LocalOperation, pending: string, success: stri
   let succeeded = false
   try {
     await changeLocal(target, operation)
+    invalidateLocalActivity()
+    if (operation.kind === 'addRemote') invalidateLocalCatalog()
     succeeded = true
     if (id.value === target) notice.value = success
   } catch (error) {
@@ -275,6 +280,8 @@ async function forget() {
   alert.value = ''
   try {
     await removeLocal(target)
+    invalidateLocalCatalog()
+    invalidateLocalActivity()
     if (id.value === target) await router.push({ name: 'repositories' })
   } catch (error) {
     if (id.value === target) alert.value = localGitError(error)

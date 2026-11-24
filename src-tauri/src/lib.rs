@@ -57,6 +57,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_runtime_info,
+            accounts::read_recent_github_activity,
             open_discussion_page,
             accounts::list_accounts,
             accounts::connect_account,
@@ -67,6 +68,7 @@ pub fn run() {
             accounts::contributions::read_contribution_source,
             accounts::contributions::read_cached_contribution_source,
             local_git::list_local_repositories,
+            local_git::list_repository_links,
             pick_repository_folder,
             local_git::add_local_repository,
             local_git::remove_local_repository,
@@ -74,6 +76,7 @@ pub fn run() {
             local_git::read_local_diff,
             local_git::change_local_repository,
             local_git::activity::read_local_activity,
+            local_git::activity::read_recent_local_activity,
             local_git::inspection::read_local_history,
             local_git::inspection::read_local_tree,
             local_git::inspection::read_local_blob,

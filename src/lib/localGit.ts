@@ -19,10 +19,6 @@ export interface LocalActivity {
   limited: boolean
 }
 
-export function readLocalActivity(day: string): Promise<LocalActivity> {
-  return invoke('read_local_activity', { day })
-}
-
 export interface LocalChange {
   path: string
   index: string

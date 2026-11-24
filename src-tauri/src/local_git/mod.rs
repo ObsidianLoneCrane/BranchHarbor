@@ -640,6 +640,70 @@ async fn with_database<T: Send + 'static>(
 }
 
 #[tauri::command]
+pub(crate) async fn list_repository_links(
+    service: State<'_, Arc<LocalGit>>,
+) -> Result<Vec<(i64, Vec<String>)>> {
+    let service = Arc::clone(service.inner());
+    tauri::async_runtime::spawn_blocking(move || {
+        let database = service.open()?;
+        let mut links = Vec::new();
+        for repository in list(&database)? {
+            let Ok(folder) = registered(&database, repository.id) else {
+                continue;
+            };
+            let Ok(remotes) = text(&folder, &["remote", "-v"]) else {
+                continue;
+            };
+            let urls = remotes
+                .lines()
+                .filter_map(|row| row.split_once('\t'))
+                .filter_map(|(_, endpoint)| endpoint.strip_suffix(" (fetch)"))
+                .filter_map(hosted_repository_path)
+                .collect::<std::collections::BTreeSet<_>>()
+                .into_iter()
+                .collect();
+            links.push((repository.id, urls));
+        }
+        Ok(links)
+    })
+    .await
+    .map_err(|_| GitError::GitFailed)?
+}
+
+fn hosted_repository_path(endpoint: &str) -> Option<String> {
+    let expanded;
+    let endpoint = if endpoint.contains("://") {
+        endpoint
+    } else {
+        let (authority, path) = endpoint.split_once(':')?;
+        expanded = format!("ssh://{authority}/{path}");
+        &expanded
+    };
+    let url = reqwest::Url::parse(endpoint).ok()?;
+    if url.password().is_some()
+        || url.query().is_some()
+        || url.fragment().is_some()
+        || !(url.scheme() == "ssh" || url.scheme() == "https" && url.username().is_empty())
+    {
+        return None;
+    }
+    let host = url.host_str()?;
+    if !matches!(host, "github.com" | "gitee.com") {
+        return None;
+    }
+    let path = url.path().trim_matches('/').to_ascii_lowercase();
+    let path = path.strip_suffix(".git").unwrap_or(&path);
+    let (owner, name) = path.split_once('/')?;
+    let valid = |value: &str| {
+        !value.is_empty()
+            && value
+                .bytes()
+                .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.'))
+    };
+    (valid(owner) && valid(name)).then(|| format!("{host}/{owner}/{name}"))
+}
+
+#[tauri::command]
 pub(super) async fn list_local_repositories(
     service: State<'_, Arc<LocalGit>>,
 ) -> Result<Vec<Repository>> {

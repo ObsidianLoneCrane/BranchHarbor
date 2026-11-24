@@ -7,11 +7,14 @@ test('opens repository files, navigates directories, and restores repository lis
 }) => {
   await installExplorerFixture(page)
   await page.goto('/#/repositories')
+  const source = page.getByRole('combobox', { name: 'Repository source' })
+  await source.selectOption('github')
+  await page.getByRole('button', { name: 'Load more repositories' }).click()
   await page
-    .getByRole('combobox', { name: 'Account', exact: true })
-    .selectOption('github:github.com:1')
-  await page.getByRole('button', { name: 'Next', exact: true }).click()
-  await page.getByRole('link', { name: 'alice/second-project', exact: true }).click()
+    .getByRole('listitem')
+    .filter({ hasText: 'alice/second-project' })
+    .getByRole('link', { name: 'Open repository' })
+    .click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('alice/second-project')
   await expect(
     page
@@ -50,7 +53,7 @@ test('opens repository files, navigates directories, and restores repository lis
   await expect(
     page.getByRole('heading', { name: 'alice/second-project', exact: true }),
   ).toBeVisible()
-  await expect(page.getByText('Page 2', { exact: false })).toBeVisible()
+  await expect(source).toHaveValue('github')
 })
 
 test('selects slash branches, ignores stale results, and paginates branch choices', async ({

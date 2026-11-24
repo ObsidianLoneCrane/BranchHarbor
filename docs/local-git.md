@@ -14,12 +14,12 @@ returns to the list, restores its scroll position, and focuses the selected item
 history list shows one reference per row, with all references available in the commit detail. Graph
 lanes keep their color along first-parent history and use distinct colors while active.
 
-Open **Repositories > Local repositories** in the desktop app. The local list is independent of
-connected provider accounts and uses the Git installation available to the desktop process.
+Open **Repositories > Add repository** in the desktop app. The dialog uses the Git installation
+available to the desktop process. Successful operations close it and show the entry in the catalog.
 
 - **Import repository** opens the operating system's folder picker. Select a working tree or a
   folder within it to register its root. Canceling leaves the list as it was. Importing the same
-  canonical path reopens the existing entry.
+  canonical path keeps a single entry.
 - **New repository** initializes an empty or new folder with the initial branch `main`. For new
   folders, the parent must exist.
 - **Clone repository** clones an existing remote into an empty or new folder and registers the
